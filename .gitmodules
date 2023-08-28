@@ -1,0 +1,6 @@
+[submodule "model/videoclip/MMPT_updated"]
+	path = model/videoclip/MMPT_updated
+	url = git@github.com:zanedurante/MMPT_updated.git
+[submodule "model/videoclip/fairseq"]
+	path = model/videoclip/fairseq
+	url = git@github.com:facebookresearch/fairseq.git
