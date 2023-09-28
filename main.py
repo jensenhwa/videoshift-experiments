@@ -22,6 +22,8 @@ argparser.add_argument("classifier", choices=["vl_proto", "hard_prompt_vl_proto"
                        help="Classifier to run")
 argparser.add_argument("-d", "--dataset", nargs="+", default=["smsm", "moma_sact", "kinetics_100", "moma_act"],
                        help="Which dataset name to run on")
+argparser.add_argument("-d_test", "--dataset_test", type=str,
+                       help="Which dataset name to test on")
 argparser.add_argument("-s", "--n_shots", nargs="+", type=int, default=[1, 2, 4, 8, 16],
                        help="Number of shots to run on")
 argparser.add_argument("-w", "--n_way", nargs="+", type=int, default=[None],
@@ -361,7 +363,7 @@ for key, val_list in unknown_args.items():
 Set up results folder
 '''
 if args.folder is None:
-    RESULTS_FOLDER = os.path.join("hyperparam_search", Classifier.__name__, VLM.__name__)
+    RESULTS_FOLDER = os.path.join("hyperparam_search", Classifier.__name__, VLM.__name__, "_".join(args.dataset))
 else:
     RESULTS_FOLDER = args.folder
 os.makedirs(RESULTS_FOLDER, exist_ok=True)
@@ -395,6 +397,9 @@ for test_params in pbar:
     pbar.set_postfix(test_params)
 
     dataset_kwargs = {key[8:]: val for key, val in test_params.items() if key.startswith("dataset.")}
+    dataset_test_kwargs = dataset_kwargs.copy()
+    dataset_test_kwargs['name'] = args.dataset_test or dataset_kwargs['name']
+
     test_kwargs = {key[5:]: val for key, val in test_params.items() if key.startswith("test.")}
 
     # Update datasets
@@ -402,7 +407,7 @@ for test_params in pbar:
         # Primary case: fine-tuning paradigm, videowise splits, support set = train split, query set = val or test split
         if not args.class_split:
             query_dataset_val = DatasetHandler(**dataset_kwargs, split="val", split_type="video")
-            query_dataset_test = DatasetHandler(**dataset_kwargs, split="test", split_type="video")
+            query_dataset_test = DatasetHandler(**dataset_test_kwargs, split="test", split_type="video")
             support_dataset_val = support_dataset_test = DatasetHandler(**dataset_kwargs, split="train",
                                                                         split_type="video")
             val_tuning_dataset = query_dataset_val if args.val_tuning else None
@@ -411,7 +416,7 @@ for test_params in pbar:
         # val-tuning is disabled with this setting
         else:
             query_dataset_val = support_dataset_val = DatasetHandler(**dataset_kwargs, split="val", split_type="class")
-            query_dataset_test = support_dataset_test = DatasetHandler(**dataset_kwargs, split="test",
+            query_dataset_test = support_dataset_test = DatasetHandler(**dataset_test_kwargs, split="test",
                                                                        split_type="class")
             val_tuning_dataset = None
 

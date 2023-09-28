@@ -16,7 +16,7 @@ class Similarity(Enum):
         similarities (np.array):    Shape = (A, B)
     '''
 
-    def __call__(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:        
+    def __call__(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         if self is Similarity.DOT:
             return np.sum(a[:, None, :] * b[None, :, :], axis=2)
 

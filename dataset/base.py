@@ -2,6 +2,7 @@ import glob
 import os, sys
 import re
 from pathlib import Path
+import random
 from typing import Optional
 import json, itertools
 import numpy as np
@@ -175,7 +176,8 @@ class DatasetHandler:
 
         elif name == "homage":
             train_filepath = Path("/vision/downloads/home_action_genome/hacgen")
-            with open(train_filepath / "list_with_activity_labels" / "train_list.csv") as f:
+
+            with open(train_filepath / "list_with_activity_labels" / f"{'val' if split == 'test' else split}_list.csv") as f:
                 for line in f:
                     video, label = line.split(",")
                     parts = video.split("_")
@@ -218,6 +220,20 @@ class DatasetHandler:
 
         else:
             raise ValueError(f"Unrecognized dataset name: {name}")
+
+        if name in ["interactadl", "metaverse"]:
+            random.seed(0)
+            for label in self.data_dict:
+                print(f"splitting with label {label}!")
+                random.shuffle(self.data_dict[label])
+                l = len(self.data_dict[label])
+                if split == "train":
+                    self.data_dict[label] = self.data_dict[label][:int(l * 0.7)]
+                elif split == "val":
+                    self.data_dict[label] = self.data_dict[label][int(l * 0.7):int(l * 0.9)]
+                elif split == "test":
+                    self.data_dict[label] = self.data_dict[label][int(l * 0.9):int(l)]
+                print(f"splitting with label {label}! {l} -> {len(self.data_dict[label])}")
 
         # Artificially limit the number of classes after the fact
         if self.class_limit is not None and self.class_limit < len(self.data_dict):
