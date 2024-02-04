@@ -7,7 +7,8 @@ import json
 
 from model.SimilarityVLM import SimilarityVLM
 from classifier.base import FewShotClassifier
-from dataset import DatasetHandler, FewShotTaskDataset
+from dataset.base import DatasetHandler
+from dataset.few_shot_dataset import FewShotTaskDataset
 
 '''
 Class for running few-shot tests, saving the results, and facillitating result analysis

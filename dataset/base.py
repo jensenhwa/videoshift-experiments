@@ -9,6 +9,7 @@ import numpy as np
 from tqdm.autonotebook import tqdm
 import torch
 
+from dataset import get_dataset_by_name
 from model.SimilarityVLM import SimilarityVLM
 
 '''
@@ -99,141 +100,7 @@ class DatasetHandler:
             Keys are category names
             Values are lists of all video paths associated with that category name.
         '''
-        self.data_dict = {}
-
-        if name in ["kinetics_100", "smsm"]:
-            # Both of these datasets come from the FSL-Video repo, and both use the splits from CMN: https://github.com/ffmpbgrnn/CMN
-            # Both datasets are stored in the same format. One folder for each category (labeled <id>.<description>), containing video files.
-            if name == "kinetics_100":
-                dataset_dir = KINETICS_100_DIR
-            else:
-                dataset_dir = SMSM_DIR
-
-            cls_folder_names = [f for f in os.listdir(dataset_dir) if os.path.isdir(os.path.join(dataset_dir, f))]
-            cls_folder_names.sort()
-
-            if split_type == "class":
-                if split == "train":
-                    class_indices = range(0, 64)
-                elif split == "val":
-                    class_indices = range(64, 76)
-                elif split == "test":
-                    class_indices = range(76, len(cls_folder_names))
-                elif split == "all":
-                    class_indices = range(0, len(cls_folder_names))
-            elif split_type == "video":
-                class_indices = range(0, len(cls_folder_names))
-
-            for i in class_indices:
-                cls_folder_name = cls_folder_names[i]
-                category_name = cls_folder_name.split(".")[-1].replace("_", " ").lower()
-
-                cls_folder_path = os.path.join(dataset_dir, cls_folder_name)
-                category_video_paths = [
-                    os.path.join(cls_folder_path, f) for f in sorted(os.listdir(cls_folder_path))
-                    if os.path.isfile(os.path.join(cls_folder_path, f)) and f[0] != "."
-                ]
-
-                if split_type == "class":
-                    vid_indices = range(0, len(category_video_paths))
-                elif split_type == "video":
-                    train_len = int(0.7648 * len(category_video_paths))
-                    val_len = int(0.1122 * len(category_video_paths))
-                    if split == "train":
-                        vid_indices = range(0, train_len)
-                    elif split == "val":
-                        vid_indices = range(train_len, train_len + val_len)
-                    elif split == "test":
-                        vid_indices = range(train_len + val_len, len(category_video_paths))
-                    elif split == "all":
-                        vid_indices = range(0, len(category_video_paths))
-
-                self.data_dict[category_name] = [category_video_paths[j] for j in vid_indices]
-
-        elif name == "moma_act":
-            sys.path.append(MOMA_REPO)
-            from .moma.momaapi.moma import MOMA
-
-            moma = MOMA(MOMA_DIR, paradigm="few-shot" if split_type == "class" else "standard")
-            cids = moma.get_cids(kind="act", threshold=1, split=split)
-            category_names = moma.get_cnames(cids_act=cids)
-            for category_name in category_names:
-                ids = moma.get_ids_act(split=split if split != "all" else None, cnames_act=[category_name])
-                category_video_paths = moma.get_paths(ids_act=ids)
-                self.data_dict[category_name] = category_video_paths
-
-        elif name == "moma_sact":
-            sys.path.append(MOMA_REPO)
-            from .moma.momaapi.moma import MOMA
-
-            moma = MOMA(MOMA_DIR, paradigm="few-shot" if split_type == "class" else "standard")
-            cids = moma.get_cids(kind="sact", threshold=1, split=split)
-            category_names = moma.get_cnames(cids_sact=cids)
-            for category_name in category_names:
-                ids = moma.get_ids_sact(split=split if split != "all" else None, cnames_sact=[category_name])
-                category_video_paths = moma.get_paths(ids_sact=ids)
-                self.data_dict[category_name] = category_video_paths
-
-        elif name == "homage":
-            train_filepath = Path("/vision/downloads/home_action_genome/hacgen")
-
-            with open(train_filepath / "list_with_activity_labels" / f"{'val' if split == 'test' else split}_list.csv") as f:
-                for line in f:
-                    video, label = line.split(",")
-                    parts = video.split("_")
-                    videos = glob.glob(str(train_filepath / "action_split_data/V1.0" / parts[0] / f"{parts[0]}_{parts[1]}_v???_{parts[2]}.mkv"))
-                    label = label.replace("_", " ")
-                    if label in self.data_dict:
-                        self.data_dict[label].extend(videos)
-                    else:
-                        self.data_dict[label] = videos
-
-        elif name == "interactadl":
-            train_filepath = Path("/vision/group/InteractADL/data") / "scene_graph_frames"
-
-            for root, dirs, files in os.walk(train_filepath):
-                for dir in dirs:
-                    match = re.fullmatch(r"task_(\d+)_person_(\d+)_(\D+)_(\d+)(_(\d+))*", dir)
-                    if match is None:
-                        raise ValueError(f"Failed to parse directory {dir}")
-                    label = match.group(3).replace("_", " ")
-                    if label in self.data_dict:
-                        self.data_dict[label].append(str(train_filepath / dir))
-                    else:
-                        self.data_dict[label] = [str(train_filepath / dir)]
-
-        elif name == "metaverse":
-            train_filepath = Path("/afs/cs.stanford.edu/u/jphwa/vision2/sail_panasonic")
-            for root, dirs, files in os.walk(train_filepath / "atomic_action_v2"):
-                for f in files:
-                    with open(train_filepath / "atomic_action_v2" / f) as fp:
-                        act_json = json.load(fp)
-                        label = act_json["activity"]
-                    videos = [
-                        str(train_filepath / "3rd-view_v2" / f.replace(".json", ".mp4")),
-                        # str(train_filepath / "ego-view_v2" / f.replace(".json", ".mp4")),
-                    ]
-                    if label in self.data_dict:
-                        self.data_dict[label].extend(videos)
-                    else:
-                        self.data_dict[label] = videos
-
-        else:
-            raise ValueError(f"Unrecognized dataset name: {name}")
-
-        if name in ["interactadl", "metaverse"]:
-            random.seed(0)
-            for label in self.data_dict:
-                print(f"splitting with label {label}!")
-                random.shuffle(self.data_dict[label])
-                l = len(self.data_dict[label])
-                if split == "train":
-                    self.data_dict[label] = self.data_dict[label][:int(l * 0.7)]
-                elif split == "val":
-                    self.data_dict[label] = self.data_dict[label][int(l * 0.7):int(l * 0.9)]
-                elif split == "test":
-                    self.data_dict[label] = self.data_dict[label][int(l * 0.9):int(l)]
-                print(f"splitting with label {label}! {l} -> {len(self.data_dict[label])}")
+        self.data_dict = get_dataset_by_name(name, splits={split}).data_dict
 
         # Artificially limit the number of classes after the fact
         if self.class_limit is not None and self.class_limit < len(self.data_dict):

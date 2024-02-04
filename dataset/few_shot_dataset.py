@@ -4,7 +4,7 @@ import numpy as np
 import contextlib
 import torch
 
-from dataset import DatasetHandler
+from dataset.base import DatasetHandler
 
 '''
 Few-Shot task dataset for sampling few-shot tasks.

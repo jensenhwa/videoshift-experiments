@@ -10,7 +10,7 @@ import argparse
 
 from FewShotTestHandler import FewShotTestHandler, optimize_hyperparameters, find_hyperparameters, test_already_stored, \
     filter_test_results
-from dataset import DatasetHandler
+from dataset.base import DatasetHandler
 from similarity_metrics import Similarity
 
 argparser = argparse.ArgumentParser()
