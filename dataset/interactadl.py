@@ -5,12 +5,14 @@ from typing import Set
 
 __all__ = ['InteractADLActivities', 'InteractADLAtomicActions']
 
+from dataset.base import CustomVideoDataset
+
 IADL_ATOMIC_ACTIONS_DIR = Path("/next/u/rharries/vlm_benchmark.data/InteractADL_egoview_actions_subclips_resized")
 IADL_ACTIVITIES_DIR = Path("/next/u/rharries/vlm_benchmark.data/InteractADL_egoview_activities_subclips")
 
 
 # TODO: Get IADL 3rd-view splits
-class InteractADLAtomicActions:
+class InteractADLAtomicActions(CustomVideoDataset):
     name = 'InteractADL Atomic Actions'
 
     def __init__(self, splits: Set[str], text_type=None):
@@ -33,7 +35,7 @@ class InteractADLAtomicActions:
                 vids[i] = str(IADL_ATOMIC_ACTIONS_DIR / vids[i])
 
 
-class InteractADLActivities:
+class InteractADLActivities(CustomVideoDataset):
     name = 'InteractADL Activities'
 
     def __init__(self, splits: Set[str], text_type=None):

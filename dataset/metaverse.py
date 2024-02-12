@@ -5,10 +5,12 @@ from typing import Set
 
 __all__ = ['MetaverseAtWorkActivities', 'MetaverseAtWorkAtomicActions']
 
+from dataset.base import CustomVideoDataset
+
 METAVERSE_SPLITS_DIR = Path("/vision/u/jphwa/sail_panasonic/videocompare/dataset")
 
 
-class MetaverseAtWorkActivities:
+class MetaverseAtWorkActivities(CustomVideoDataset):
     name = 'Metaverse@Work Activities'
 
     def __init__(self, splits: Set[str], views=('ego', '3rd'), text_type=None):
@@ -27,7 +29,7 @@ class MetaverseAtWorkActivities:
                         self.data_dict[key] = data[key]
 
 
-class MetaverseAtWorkAtomicActions:
+class MetaverseAtWorkAtomicActions(CustomVideoDataset):
     name = 'Metaverse@Work Atomic Actions'
 
     def __init__(self, splits: Set[str], views=('ego', '3rd'), text_type=None):

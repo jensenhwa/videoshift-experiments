@@ -5,10 +5,12 @@ from typing import Set
 
 __all__ = ['HomeActionGenomeActivities', 'HomeActionGenomeAtomicActions']
 
+from dataset.base import CustomVideoDataset
+
 HOMAGE_ATOMIC_ACTION_SPLITS_DIR = Path("/vision/u/jphwa/sail_panasonic/videocompare/dataset")
 
 
-class HomeActionGenomeActivities:
+class HomeActionGenomeActivities(CustomVideoDataset):
     name = 'Home Action Genome Activities'
 
     def __init__(self, splits: Set[str], text_type=None):
@@ -31,10 +33,12 @@ class HomeActionGenomeActivities:
                     else:
                         self.data_dict[label] = videos
 
-        self.data_dict = {k: [p.replace("V1.0", "V1.0resized", 1) for p in v] for k, v in self.data_dict.items()}
+        self.data_dict = {k: [p.replace("V1.0", "V1.0resized", 1)
+                               .replace("mkv", "webm", 1) for p in v
+                              ] for k, v in self.data_dict.items()}
 
 
-class HomeActionGenomeAtomicActions:
+class HomeActionGenomeAtomicActions(CustomVideoDataset):
     name = 'Home Action Genome Atomic Actions'
 
     def __init__(self, splits: Set[str], text_type=None):
@@ -50,4 +54,6 @@ class HomeActionGenomeAtomicActions:
                 else:
                     self.data_dict[key] = data[key]
 
-        self.data_dict = {k: [p.replace("V1.0", "V1.0resized", 1) for p in v] for k, v in self.data_dict.items()}
+        self.data_dict = {k: [p.replace("V1.0", "V1.0resized", 1)
+                               .replace("mkv", "webm", 1) for p in v
+                              ] for k, v in self.data_dict.items()}
