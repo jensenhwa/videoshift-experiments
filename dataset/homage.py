@@ -31,6 +31,8 @@ class HomeActionGenomeActivities:
                     else:
                         self.data_dict[label] = videos
 
+        self.data_dict = {k: [p.replace("V1.0", "V1.0resized", 1) for p in v] for k, v in self.data_dict.items()}
+
 
 class HomeActionGenomeAtomicActions:
     name = 'Home Action Genome Atomic Actions'
@@ -47,3 +49,5 @@ class HomeActionGenomeAtomicActions:
                     self.data_dict[key].extend(data[key])
                 else:
                     self.data_dict[key] = data[key]
+
+        self.data_dict = {k: [p.replace("V1.0", "V1.0resized", 1) for p in v] for k, v in self.data_dict.items()}
