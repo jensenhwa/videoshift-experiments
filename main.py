@@ -80,22 +80,12 @@ VLM Setup
 '''
 fixed_vlm_kwargs = {}  # VLM keyword parameters to pass to constructor
 vlm_hyperparams = []  # Hyperparameter spaces in skopt format
-if args.vlm == "clip":
-    from CLIP.CLIPVLM import ClipVLM as VLM
-
-    fixed_vlm_kwargs["num_frames"] = 10
-elif args.vlm == "miles":
-    from MILES.wrapper import MILES_SimilarityVLM as VLM
-elif args.vlm == "videoclip":
+if args.vlm == "videoclip":
     from model.videoclip.VideoCLIP import VideoClipVLM as VLM
 
     fixed_vlm_kwargs["num_seconds"] = 4
     fixed_vlm_kwargs["sample_strat"] = "spread"
     fixed_vlm_kwargs["use_cuda"] = True
-elif args.vlm == "univl":
-    from UNIVL.wrapper import UniVL_SimilarityVLM as VLM
-elif args.vlm == "vttwins":
-    from VTTWINS.wrapper import VTTWINS_SimilarityVLM as VLM
 else:
     raise NotImplementedError
 
