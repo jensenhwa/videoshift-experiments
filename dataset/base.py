@@ -1,13 +1,11 @@
-import glob
-import os, sys
-import re
-from pathlib import Path
-import random
-from typing import Optional
-import json, itertools
+import itertools
+import json
+import os
+from typing import Optional, Union, Iterable, Dict, List
+
 import numpy as np
-from tqdm.autonotebook import tqdm
 import torch
+from tqdm.autonotebook import tqdm
 
 from dataset import get_dataset_by_name
 from model.SimilarityVLM import SimilarityVLM
@@ -27,6 +25,11 @@ SMSM_DIR = "/home/datasets/smsm_cmn"
 MOMA_DIR = "/home/datasets/moma"
 
 DEFAULT_MIN_TRAIN_VIDS = 16
+
+
+class CustomVideoDataset:
+    data_dict: Dict[str, List[str]]
+
 
 '''
 Simple dataset for filling video embedding caches.
@@ -78,7 +81,7 @@ class SequentialCategoryNameDataset(torch.utils.data.Dataset):
 
 
 class DatasetHandler:
-    def __init__(self, name: str, split: str = "val", split_type: str = "video", class_limit: Optional[int] = None,
+    def __init__(self, name: Union[str, Iterable], split: str = "val", split_type: str = "video", class_limit: Optional[int] = None,
                  min_train_videos: int = DEFAULT_MIN_TRAIN_VIDS):
         self.name = name
         self.split = split
@@ -100,7 +103,17 @@ class DatasetHandler:
             Keys are category names
             Values are lists of all video paths associated with that category name.
         '''
-        self.data_dict = get_dataset_by_name(name, splits={split}).data_dict
+        if isinstance(name, str):
+            self.data_dict = get_dataset_by_name(name, splits={split}).data_dict
+        else:
+            self.data_dict = {}
+            for dataset in name:
+                data = get_dataset_by_name(dataset, splits={split}).data_dict
+                for key in list(data.keys()):
+                    if key in self.data_dict:
+                        self.data_dict[key].extend(data[key])
+                    else:
+                        self.data_dict[key] = data[key]
 
         # Artificially limit the number of classes after the fact
         if self.class_limit is not None and self.class_limit < len(self.data_dict):

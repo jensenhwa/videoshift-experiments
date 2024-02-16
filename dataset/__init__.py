@@ -12,10 +12,10 @@ _dataset_cache = {}
 
 
 def _load_datasets(module_name):
-    """Load a lexer (and all others in the module too)."""
+    """Load a dataset (and all others in the module too)."""
     mod = __import__(module_name, None, None, ['__all__'])
-    for lexer_name in mod.__all__:
-        cls = getattr(mod, lexer_name)
+    for dataset_name in mod.__all__:
+        cls = getattr(mod, dataset_name)
         _dataset_cache[cls.name] = cls
 
 
@@ -28,7 +28,6 @@ def get_dataset_by_name(_alias, **options):
     if not _alias:
         raise ValueError('no dataset for alias %r found' % _alias)
 
-    # lookup builtin lexers
     for module_name, name, aliases in DATASETS.values():
         if _alias.lower() in aliases:
             if name not in _dataset_cache:

@@ -20,7 +20,7 @@ argparser.add_argument("classifier", choices=["vl_proto", "hard_prompt_vl_proto"
                                               "linear", "subvideo", "tip_adapter", "coop", "cona", "cona_adapter",
                                               "cona_prompt_init", "name_tuning", "name_tuning_adapter", "coop_adapter"],
                        help="Classifier to run")
-argparser.add_argument("-d", "--dataset", nargs="+", default=["smsm", "moma_sact", "kinetics_100", "moma_act"],
+argparser.add_argument("-d", "--dataset", nargs="+", default=["homageactions", "interactadlactions"],
                        help="Which dataset name to run on")
 argparser.add_argument("-d_test", "--dataset_test", type=str,
                        help="Which dataset name to test on")
@@ -67,7 +67,7 @@ Test Setup
 test_params_dict = {}
 
 # Dataset Params - dataset.____ keys are passed into DatasetHandler constructor
-test_params_dict["dataset.name"] = args.dataset
+test_params_dict["dataset.name"] = [args.dataset]
 
 # Few-Shot Test Params - test.____ keys are passed into few-shot test call
 test_params_dict["test.n_way"] = args.n_way  # None value gets manually converted to the max size for each dataset
