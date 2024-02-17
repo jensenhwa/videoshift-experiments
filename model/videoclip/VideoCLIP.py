@@ -237,10 +237,7 @@ class VideoClipVLM(SimilarityVLM):
         :param subvideo_end_frame:
         :return:
         """
-        if not (video_path.endswith(".mkv") or video_path.endswith(".mp4")):
-            video_reader = VideoReaderFromImages(video_path, num_threads=1)
-        else:
-            video_reader = decord.VideoReader(video_path, num_threads=1)
+        video_reader = decord.VideoReader(video_path, num_threads=1)
         video_len = len(video_reader)
         video_fps = video_reader.get_avg_fps()
         return video_reader.get_batch(
