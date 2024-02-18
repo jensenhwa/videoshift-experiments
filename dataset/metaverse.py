@@ -7,7 +7,7 @@ __all__ = ['MetaverseAtWorkActivities', 'MetaverseAtWorkAtomicActions']
 
 from dataset.base import CustomVideoDataset
 
-METAVERSE_SPLITS_DIR = Path("/vision/u/jphwa/sail_panasonic/videocompare/dataset")
+METAVERSE_SPLITS_DIR = Path("/vision/u/jphwa/sail_panasonic/videocompare/dataset/splits")
 
 
 class MetaverseAtWorkActivities(CustomVideoDataset):

@@ -7,7 +7,7 @@ __all__ = ['HomeActionGenomeActivities', 'HomeActionGenomeAtomicActions']
 
 from dataset.base import CustomVideoDataset
 
-HOMAGE_ATOMIC_ACTION_SPLITS_DIR = Path("/vision/u/jphwa/sail_panasonic/videocompare/dataset")
+HOMAGE_ATOMIC_ACTION_SPLITS_DIR = Path("/vision/u/jphwa/sail_panasonic/videocompare/dataset/splits")
 
 
 class HomeActionGenomeActivities(CustomVideoDataset):
@@ -33,10 +33,6 @@ class HomeActionGenomeActivities(CustomVideoDataset):
                     else:
                         self.data_dict[label] = videos
 
-        self.data_dict = {k: [p.replace("V1.0", "V1.0resized", 1)
-                               .replace("mkv", "webm", 1) for p in v
-                              ] for k, v in self.data_dict.items()}
-
 
 class HomeActionGenomeAtomicActions(CustomVideoDataset):
     name = 'Home Action Genome Atomic Actions'
@@ -53,7 +49,3 @@ class HomeActionGenomeAtomicActions(CustomVideoDataset):
                     self.data_dict[key].extend(data[key])
                 else:
                     self.data_dict[key] = data[key]
-
-        self.data_dict = {k: [p.replace("V1.0", "V1.0resized", 1)
-                               .replace("mkv", "webm", 1) for p in v
-                              ] for k, v in self.data_dict.items()}
