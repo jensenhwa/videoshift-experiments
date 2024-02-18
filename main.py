@@ -578,7 +578,7 @@ for test_params in pbar:
                         hyper_samples = np.linspace(hyper.low, hyper.high, num=samples_per_cont_hyper, endpoint=True)
 
                     if type(hyper) is skopt.space.space.Integer:
-                        hyper_samples = np.round(hyper_samples)
+                        hyper_samples = np.rint(hyper_samples).astype(np.int32)
 
                     discretized_hyperparam_space.append(hyper_samples)
                 else:

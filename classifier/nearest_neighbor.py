@@ -2,7 +2,7 @@ from typing import Optional
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 
-from SimilarityVLM import SimilarityVLM
+from model.SimilarityVLM import SimilarityVLM
 from similarity_metrics import Similarity
 from .base import FewShotClassifier
 
@@ -23,21 +23,22 @@ class NearestNeighborFewShotClassifier(FewShotClassifier):
     '''
     def __init__(self, vlm: SimilarityVLM, metric: Optional[Similarity] = None, neighbor_count: int = 1, neighbor_weights: str = "uniform") -> None:
         super().__init__(vlm, metric)
-        
+        if isinstance(neighbor_count, np.int32):
+            neighbor_count = neighbor_count.item()
         assert type(neighbor_count) is int and neighbor_count > 0
         assert neighbor_weights in ["uniform", "distance"]
-        
+
         self.neighbor_count = neighbor_count
         self.neighbor_weights = neighbor_weights
-        
+
         if self.metric is Similarity.COSINE:
             self.sklearn_metric = "cosine"
         elif self.metric is Similarity.DOT:
             self.sklearn_metric = lambda a, b: np.exp(-Similarity.DOT(a[None, :], b[None, :])[0, 0] / 100)
         else:
             raise NotImplementedError
-        
-        
+
+
     '''
     Returns a dict with the value of all classifier-specific parameters which may affect prediction
     accuracy (apart from the underlying VLM object used).
@@ -49,7 +50,7 @@ class NearestNeighborFewShotClassifier(FewShotClassifier):
             "neighbor_count": self.neighbor_count,
             "neighbor_weights": self.neighbor_weights
         }
-        
+
     '''
     Predicts categories for a set of query videos in a few-shot task (formatted like FewShotTaskDataset)
     Args:
@@ -75,26 +76,26 @@ class NearestNeighborFewShotClassifier(FewShotClassifier):
             n_support = support_video_paths.shape[1]
         else:
             n_support = 0
-        
+
         query_embeds = np.array([self.vlm.get_video_embeds(vid) for vid in query_video_paths])
-        
+
         # Collect all support example embeddings (text embeds followed by n_support video embeds)
         support_embeds = [] # Each element should have shape (n_way, n_supporting_embeds, embed_dim)
-        
+
         text_embeds = np.vstack([self.vlm.get_text_embeds(name) for name in category_names])
         support_embeds.append(text_embeds[:, None, :])
-        
+
         if n_support > 0:
             flat_support_embeds = np.vstack([self.vlm.get_video_embeds(vid) for vid in support_video_paths.flatten()])
             support_vid_embeds = flat_support_embeds.reshape(n_way, n_support, -1)
             support_embeds.append(support_vid_embeds)
-        
+
         support_embeds = np.concatenate(support_embeds, axis=1)
         flat_support_embeds = support_embeds.reshape(n_way * (n_support + 1), -1)
-        
+
         support_category_inds = (np.arange(n_way)[:, None] * np.ones((n_way, n_support + 1))).astype(int)
         flat_support_category_inds = support_category_inds.flatten()
-        
+
         # Fit KNN classifier
         knn = KNeighborsClassifier(
             n_neighbors=min(self.neighbor_count, n_way * (n_support + 1)),
@@ -103,8 +104,8 @@ class NearestNeighborFewShotClassifier(FewShotClassifier):
             algorithm="brute"
         )
         knn.fit(flat_support_embeds, flat_support_category_inds)
-        
+
         # Predict for query embeds
         query_predictions = knn.predict(query_embeds)
-        
+
         return query_predictions
