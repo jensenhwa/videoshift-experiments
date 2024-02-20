@@ -95,18 +95,19 @@ def split_metaverse_atomic_actions():
             with open(root_path / "atomic_action_v2" / f) as fp:
                 act_json = json.load(fp)
             for action in act_json["actions"]:
-                path = str(root_path / "3rd-view_v2" / f.replace(".json", ".mp4"))
-                items[action['class']].append(f"{path}:{action['frame_start']}:{action['frame_end']}")
+                paths = glob.glob(str(root_path / "3rd-view_v2" / (f[:f.rfind('_') + 1] + "*")))
+                items[action['class']].extend([
+                    f"{path}:{action['frame_start']}:{action['frame_end']}" for path in paths
+                ])
 
-                path_ego = str(root_path / "ego-view_v2" / f.replace(".json", ".mp4"))
+                path_ego = str(root_path / "ego-view_v2" / (f[:f.rfind('_')] + ".webm"))
                 items_ego[action['class']].append(f"{path_ego}:{action['frame_start']}:{action['frame_end']}")
 
     items = {k: [p.replace("view_v2", "view_v2_resized", 1)
                  .replace("mp4", "webm", 1) for p in v
                  ] for k, v in items.items()}
 
-    items_ego = {k: [p.replace("view_v2", "view_v2_resized", 1)
-                     .replace("mp4", "webm", 1) for p in v
+    items_ego = {k: [p.replace("view_v2", "view_v2_resized", 1) for p in v
                      ] for k, v in items_ego.items()}
 
     train_items, val_items, test_items = split(items, 0.8, 0.75)
@@ -137,18 +138,17 @@ def split_metaverse_activities():
             with open(root_path / "atomic_action_v2" / f) as fp:
                 act_json = json.load(fp)
             label = act_json["activity"]
-            path = str(root_path / "3rd-view_v2" / f.replace(".json", ".mp4"))
-            items[label].append(f"{path}")
+            paths = glob.glob(str(root_path / "3rd-view_v2" / (f[:f.rfind('_') + 1] + "*")))
+            items[label].extend(paths)
 
-            path_ego = str(root_path / "ego-view_v2" / f.replace(".json", ".mp4"))
+            path_ego = str(root_path / "ego-view_v2" / (f[:f.rfind('_')] + ".webm"))
             items_ego[label].append(f"{path_ego}")
 
     items = {k: [p.replace("view_v2", "view_v2_resized", 1)
                  .replace("mp4", "webm", 1) for p in v
                  ] for k, v in items.items()}
 
-    items_ego = {k: [p.replace("view_v2", "view_v2_resized", 1)
-                     .replace("mp4", "webm", 1) for p in v
+    items_ego = {k: [p.replace("view_v2", "view_v2_resized", 1) for p in v
                      ] for k, v in items_ego.items()}
 
     train_items, val_items, test_items = split(items, 0.8, 0.75)

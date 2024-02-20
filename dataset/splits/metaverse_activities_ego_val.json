@@ -1,57 +1,57 @@
 {
     "assembly": [
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data028_004_048622071468.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data029_001_048522075341.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data031_005_048522075341.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data008_003_048622071468.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data031_001_048622071468.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data026_006_048622071468.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data030_004_048522075341.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data009_002_048622071468.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data032_002_048622071468.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data005_002_048622071468.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data004_003_048622071468.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data025_001_048522075341.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data032_005_048622071468.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data032_001_048522075341.webm"
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data028_004.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data029_001.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data031_005.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data008_003.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data031_001.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data026_006.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data030_004.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data009_002.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data032_002.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data005_002.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data004_003.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data025_001.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data032_005.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data032_001.webm"
     ],
     "tiling": [
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data044_002_048522070875.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data048_002_048522070875.webm"
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data044_002.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data048_002.webm"
     ],
     "picking": [
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data037_004_048522070875.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data039_004_047422071051.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data021_002_048522070875.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data039_002_047422071051.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data038_006_048522075341.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data038_001_048522070875.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data037_002_048522070875.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data034_006_048522075341.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data003_003_047422071051.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data035_002_047422071051.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data014_001_048522070875.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data034_005_048622071468.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data035_005_047422071051.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data021_003_048522070875.webm"
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data037_004.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data039_004.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data021_002.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data039_002.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data038_006.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data038_001.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data037_002.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data034_006.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data003_003.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data035_002.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data014_001.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data034_005.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data035_005.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data021_003.webm"
     ],
     "wallpapering": [
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data043_002_048522070875.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data046_003_047422071051.webm"
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data043_002.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data046_003.webm"
     ],
     "painting": [
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data045_003_048522070875.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data041_003_047422071051.webm"
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data045_003.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data041_003.webm"
     ],
     "plasterboard installation": [
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data023_003_047422071051.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data015_002_047422071051.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data012_003_047422071051.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data023_002_048622071468.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data016_001_047422071051.webm"
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data023_003.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data015_002.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data012_003.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data023_002.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data016_001.webm"
     ],
     "light steel framing": [
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data043_004_048522070875.webm",
-        "/vision/group/metaverse_at_work/ego-view_v2_resized/data042_001_048622071468.webm"
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data043_004.webm",
+        "/vision/group/metaverse_at_work/ego-view_v2_resized/data042_001.webm"
     ]
 }

@@ -1,11 +1,10 @@
-import glob
 import json
 from pathlib import Path
 from typing import Set
 
 __all__ = ['MetaverseAtWorkActivities', 'MetaverseAtWorkAtomicActions']
 
-from dataset.base import CustomVideoDataset
+from dataset.base import CustomVideoDataset, update_key
 
 METAVERSE_SPLITS_DIR = Path("/vision/u/jphwa/sail_panasonic/videocompare/dataset/splits")
 
@@ -28,6 +27,8 @@ class MetaverseAtWorkActivities(CustomVideoDataset):
                     else:
                         self.data_dict[key] = data[key]
 
+        self.data_dict = {update_key(k, text_type): v for k, v in self.data_dict.items()}
+
 
 class MetaverseAtWorkAtomicActions(CustomVideoDataset):
     name = 'Metaverse@Work Atomic Actions'
@@ -45,3 +46,5 @@ class MetaverseAtWorkAtomicActions(CustomVideoDataset):
                         self.data_dict[key].extend(data[key])
                     else:
                         self.data_dict[key] = data[key]
+
+        self.data_dict = {update_key(k, text_type): v for k, v in self.data_dict.items()}

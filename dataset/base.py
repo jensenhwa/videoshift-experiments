@@ -27,6 +27,20 @@ MOMA_DIR = "/home/datasets/moma"
 DEFAULT_MIN_TRAIN_VIDS = 16
 
 
+REPLACEMENTS = {
+    "_": " ",
+    "sth": "something",
+    "swh": "somewhere"
+}
+
+
+def update_key(k: str, text_type: str or None) -> str:
+    for old, new in REPLACEMENTS.items():
+        k = k.replace(old, new)
+
+    return k
+
+
 class CustomVideoDataset:
     data_dict: Dict[str, List[str]]
 

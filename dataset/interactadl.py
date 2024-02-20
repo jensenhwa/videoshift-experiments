@@ -1,11 +1,10 @@
 import json
 from pathlib import Path
-
 from typing import Set
 
 __all__ = ['InteractADLActivities', 'InteractADLAtomicActions']
 
-from dataset.base import CustomVideoDataset
+from dataset.base import CustomVideoDataset, update_key
 
 IADL_ATOMIC_ACTIONS_DIR = Path("/next/u/rharries/vlm_benchmark.data/InteractADL_egoview_actions_subclips_resized")
 IADL_ACTIVITIES_DIR = Path("/next/u/rharries/vlm_benchmark.data/InteractADL_egoview_activities_subclips")
@@ -34,6 +33,8 @@ class InteractADLAtomicActions(CustomVideoDataset):
             for i in range(len(vids)):
                 vids[i] = str(IADL_ATOMIC_ACTIONS_DIR / vids[i])
 
+        self.data_dict = {update_key(k, text_type): v for k, v in self.data_dict.items()}
+
 
 class InteractADLActivities(CustomVideoDataset):
     name = 'InteractADL Activities'
@@ -55,3 +56,5 @@ class InteractADLActivities(CustomVideoDataset):
         for category, vids in self.data_dict.items():
             for i in range(len(vids)):
                 vids[i] = str(IADL_ACTIVITIES_DIR / vids[i])
+
+        self.data_dict = {update_key(k, text_type): v for k, v in self.data_dict.items()}

@@ -5,7 +5,7 @@ from typing import Set
 
 __all__ = ['HomeActionGenomeActivities', 'HomeActionGenomeAtomicActions']
 
-from dataset.base import CustomVideoDataset
+from dataset.base import CustomVideoDataset, update_key
 
 HOMAGE_ATOMIC_ACTION_SPLITS_DIR = Path("/vision/u/jphwa/sail_panasonic/videocompare/dataset/splits")
 
@@ -33,6 +33,8 @@ class HomeActionGenomeActivities(CustomVideoDataset):
                     else:
                         self.data_dict[label] = videos
 
+        self.data_dict = {update_key(k, text_type): v for k, v in self.data_dict.items()}
+
 
 class HomeActionGenomeAtomicActions(CustomVideoDataset):
     name = 'Home Action Genome Atomic Actions'
@@ -49,3 +51,5 @@ class HomeActionGenomeAtomicActions(CustomVideoDataset):
                     self.data_dict[key].extend(data[key])
                 else:
                     self.data_dict[key] = data[key]
+
+        self.data_dict = {update_key(k, text_type): v for k, v in self.data_dict.items()}
