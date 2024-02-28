@@ -95,7 +95,7 @@ class VLMVLM(SimilarityVLM):
     def text_end_special_token_count(self) -> int:
         return 1
 
-    def load_model(self, path="video_clip/MMPT_updated/projects/mtm/vlm/how2.yaml"):
+    def load_model(self, path="videoclip/MMPT_updated/projects/mtm/vlm/how2.yaml"):
         """
         Loads the model from the weights specified in `path`
         :param path:
@@ -241,10 +241,12 @@ class VLMVLM(SimilarityVLM):
             video_reader = VideoReaderFromImages(video_path, num_threads=1)
         else:
             video_reader = decord.VideoReader(video_path, num_threads=1)
-        video_len = len(video_reader)
-        video_fps = video_reader.get_avg_fps()
-        return video_reader.get_batch(
-            self.sample_frame_indices(video_len, video_fps, subvideo_start_frame, subvideo_end_frame, random_augment))
+        
+        return video_reader.get_batch(range(len(video_reader)))
+        #video_len = len(video_reader)
+        #video_fps = video_reader.get_avg_fps()
+        #return video_reader.get_batch(
+        #    self.sample_frame_indices(video_len, video_fps, subvideo_start_frame, subvideo_end_frame, random_augment))
 
     def transform(self, video, random_augment: bool = False):
         """
@@ -300,7 +302,7 @@ class VLMVLM(SimilarityVLM):
         transforms = Compose([
             # Change to C, T, H, W for UniformTemporalSubsampling
             Permute((3, 0, 1, 2)),
-            # UniformTemporalSubsample(30*self.num_seconds, ),
+            UniformTemporalSubsample(30*self.num_seconds),
             Lambda(lambda x: x / 255.0),  # Only normalization for VideoCLIP is / 255.0
             ShortSideScale(size=256),
             CenterCrop(224),
