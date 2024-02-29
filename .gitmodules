@@ -4,3 +4,6 @@
 [submodule "model/videoclip/fairseq"]
 	path = model/videoclip/fairseq
 	url = git@github.com:facebookresearch/fairseq.git
+[submodule "model/frozenintime/frozen-in-time"]
+	path = model/frozenintime/frozen-in-time
+	url = https://github.com/m-bain/frozen-in-time.git
