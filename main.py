@@ -148,7 +148,7 @@ elif args.classifier == "gaussian_proto":
         name="prior_var", prior="log-uniform"
     ))
 elif args.classifier == "linear":
-    from classifier import LinearProbe as Classifier
+    from classifier import LinearProbeFewShotClassifier as Classifier
 
     classifier_hyperparams.append(skopt.space.Real(
         1e-2, 1e2,
