@@ -1,6 +1,7 @@
 import glob
 import json
 import os
+import random
 from collections import defaultdict, Counter
 from pathlib import Path
 from typing import Tuple, Dict
@@ -9,6 +10,7 @@ OUTPUT_DIR = Path(__file__).parent.parent / "splits"
 
 
 def split(items, split1: float, split2: float) -> Tuple[Dict, Dict, Dict]:
+    """Split each value of items, ensuring that multiple views of the same action are kept together"""
     train_items = {}
     val_items = {}
     test_items = {}
@@ -52,7 +54,27 @@ def split(items, split1: float, split2: float) -> Tuple[Dict, Dict, Dict]:
     return train_items, val_items, test_items
 
 
-def split_homage():
+def split_classwise(items, split1: float, split2: float) -> Tuple[Dict, Dict, Dict]:
+    """Split the keys of items, ensuring that all videos for the same label are kept together"""
+    keys = list(items.keys())
+    random.shuffle(keys)
+    l = len(items)
+    val_b = round(l * split1)
+    keys_train = keys[:val_b]
+    keys_test = keys[val_b:]
+
+    l = len(keys_train)
+    train_b = round(l * split2)
+    keys_val = keys_train[train_b:]
+    keys_train = keys_train[:train_b]
+
+    train_items = {k: items[k] for k in keys_train}
+    val_items = {k: items[k] for k in keys_val}
+    test_items = {k: items[k] for k in keys_test}
+    return train_items, val_items, test_items
+
+
+def split_homage(split_type: str):
     view_counter = Counter()
     items = defaultdict(list)
     root_path = Path("/vision/downloads/home_action_genome/hacgen")
@@ -75,11 +97,39 @@ def split_homage():
                  .replace("mkv", "webm", 1) for p in v
                  ] for k, v in items.items()}
 
-    train_items, val_items, test_items = split(items, 0.8, 0.75)
+    if split_type == "video":
+        train_items, val_items, test_items = split(items, 0.8, 0.75)
+    elif split_type == "class":
+        train_items, val_items, test_items = split_classwise(items, 0.8, 0.75)
+    else:
+        raise NotImplementedError
 
     with open(OUTPUT_DIR / "homage_train.json", "w") as train_fp, \
             open(OUTPUT_DIR / "homage_val.json", "w") as val_fp, \
             open(OUTPUT_DIR / "homage_test.json", "w") as test_fp:
+        json.dump(train_items, train_fp, indent=4)
+        json.dump(val_items, val_fp, indent=4)
+        json.dump(test_items, test_fp, indent=4)
+    print("DONE!")
+
+
+def split_interactadl(split_type: str):
+    annotations = Path("/vision/u/jphwa/interactadl/ego_view_actions_resized")
+    items = {}
+    foldernames = list(os.listdir(annotations))
+    for folder in foldernames:
+        items[folder] = os.listdir(annotations / folder)
+
+    if split_type == "video":
+        train_items, val_items, test_items = split(items, 0.8, 0.75)
+    elif split_type == "class":
+        train_items, val_items, test_items = split_classwise(items, 0.8, 0.75)
+    else:
+        raise NotImplementedError
+
+    with open(OUTPUT_DIR / "interactadl_train.json", "w") as train_fp, \
+            open(OUTPUT_DIR / "interactadl_val.json", "w") as val_fp, \
+            open(OUTPUT_DIR / "interactadl_test.json", "w") as test_fp:
         json.dump(train_items, train_fp, indent=4)
         json.dump(val_items, val_fp, indent=4)
         json.dump(test_items, test_fp, indent=4)
@@ -172,6 +222,7 @@ def split_metaverse_activities():
 
 if __name__ == "__main__":
     OUTPUT_DIR.mkdir(exist_ok=True)
-    split_homage()
-    split_metaverse_atomic_actions()
-    split_metaverse_activities()
+    split_interactadl("class")
+    # split_homage()
+    # split_metaverse_atomic_actions()
+    # split_metaverse_activities()

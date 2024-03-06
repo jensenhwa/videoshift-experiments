@@ -16,6 +16,10 @@ class MetaverseAtWorkActivities(CustomVideoDataset):
         self.data_dict = {}
         if not splits <= {"train", "val", "test"}:
             raise NotImplementedError
+        if splits != {"test"}:
+            raise NotImplementedError("Metaverse dataset should not be used during training;"
+                                      "we use this dataset to evaluate generalization ability.")
+        splits = {"train", "val", "test"}
 
         for s in splits:
             for v in views:
@@ -37,6 +41,10 @@ class MetaverseAtWorkAtomicActions(CustomVideoDataset):
         self.data_dict = {}
         if not splits <= {"train", "val", "test"}:
             raise NotImplementedError
+        if splits != {"test"}:
+            raise NotImplementedError("Metaverse dataset should not be used during training;"
+                                      "we use this dataset to evaluate generalization ability.")
+        splits = {"train", "val", "test"}
         for s in splits:
             for v in views:
                 with open(METAVERSE_SPLITS_DIR / f"metaverse_{v}_{s}.json") as fp:
