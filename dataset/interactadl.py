@@ -32,7 +32,7 @@ class InteractADLAtomicActions(CustomVideoDataset):
         # Prepend base data dir to relative video paths
         for category, vids in self.data_dict.items():
             for i in range(len(vids)):
-                vids[i] = str(IADL_ATOMIC_ACTION_SPLITS_DIR / category / vids[i])
+                vids[i] = str(IADL_ATOMIC_ACTION_VIDEOS_DIR / category / vids[i])
 
         self.data_dict = {update_key(k, text_type): v for k, v in self.data_dict.items()}
 
