@@ -112,6 +112,11 @@ class SimilarityVLM(ABC):
 
         return text_embed
 
+    def compute_video_embeds(self, video_path: str, subvideo_start_frame: Optional[int] = None,
+                         subvideo_end_frame: Optional[int] = None):
+        return self.video_encoder(video_path, subvideo_start_frame=subvideo_start_frame,
+                                       subvideo_end_frame=subvideo_end_frame)
+
     @lru_cache(maxsize=MEM_CACHE_SIZE)
     def get_video_embeds(self, video_path: str, subvideo_start_frame: Optional[int] = None,
                          subvideo_end_frame: Optional[int] = None):

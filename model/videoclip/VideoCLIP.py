@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import os
-from typing import Optional, List
+from typing import Optional, List, Iterable
 
 import torch
 
@@ -259,7 +259,7 @@ class VideoClipVLM(SimilarityVLM):
         inputs = inputs.view(1, -1, 30, h, w, c)  # Add singleton batch dimension
         return inputs
 
-    def video_encoder(self, video_path: str, subvideo_start_frame: Optional[int] = None,
+    def video_encoder(self, path: str or Iterable[str], subvideo_start_frame: Optional[int] = None,
                       subvideo_end_frame: Optional[int] = None, random_augment: bool = False) -> np.ndarray:
         """
         Load, transform and encode a video file into a joint text/video embedding space
@@ -268,22 +268,28 @@ class VideoClipVLM(SimilarityVLM):
         :param subvideo_end_frame:
         :return:
         """
-        # Correct for any subvideo start/end frame information included in video_path ("{path}:{start}:{end}")
-        video_path_split = video_path.split(":")
-        if len(video_path_split) == 3:
-            video_path = video_path_split[0]
-            subvideo_start_frame = int(video_path_split[1])
-            subvideo_end_frame = int(video_path_split[2])
+        if isinstance(path, str):
+            path = [path]
+        video_feats = []
+        print("encoding", path)
+        for video_path in path:
+            # Correct for any subvideo start/end frame information included in video_path ("{path}:{start}:{end}")
+            video_path_split = video_path.split(":")
+            if len(video_path_split) == 3:
+                video_path = video_path_split[0]
+                subvideo_start_frame = int(video_path_split[1])
+                subvideo_end_frame = int(video_path_split[2])
 
-        video = self.open_video(video_path, subvideo_start_frame, subvideo_end_frame, random_augment)
-        video = self.transform(video, random_augment)
+            video = self.open_video(video_path, subvideo_start_frame, subvideo_end_frame, random_augment)
+            video = self.transform(video, random_augment)
 
-        if self.cuda:
-            video = video.to(DEVICE)
+            if self.cuda:
+                video = video.to(DEVICE)
 
-        with torch.no_grad():
             video_features = self.model.forward(video)
-            video_features = video_features.cpu().numpy()[0]
+            video_feats.append(video_features)
+
+        video_features = torch.cat(video_feats)
         return video_features
 
     def default_similarity_metric(self) -> Similarity:
