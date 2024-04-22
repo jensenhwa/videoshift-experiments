@@ -1,0 +1,2 @@
+vlm_class,vlm.num_seconds,vlm.path,vlm.use_cuda,classifier_class,classifier.regularization,query_dataset,support_dataset,n_way,n_support,n_query,n_episodes,val_tuning_dataset,accuracy,accuracy_std
+FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.14497406703726315,['homageactions'].v.test,['homageactions'].v.train,386,1,,4,['homageactions'].v.val,0.0074401835463782364,0.000694513933150347

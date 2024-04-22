@@ -12,9 +12,13 @@ from FewShotTestHandler import FewShotTestHandler, optimize_hyperparameters, fin
     filter_test_results
 from dataset.base import DatasetHandler
 from similarity_metrics import Similarity
+import sys
+
+sys.path.append(os.path.join(sys.path[0], 'model', 'frozenintime', 'frozenintime'))
+sys.path.append(os.path.join(sys.path[0], 'model', 'videoclip', 'MMPT_updated'))
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument("vlm", choices=["clip", "miles", "videoclip"],
+argparser.add_argument("vlm", choices=["clip", "miles", "videoclip", "fit"],
                        help="VLM to run. Requires corresponding conda environment")
 argparser.add_argument("classifier", choices=["vl_proto", "hard_prompt_vl_proto", "nearest_neighbor", "gaussian_proto",
                                               "linear", "subvideo", "tip_adapter", "coop", "cona", "cona_adapter",
@@ -40,6 +44,9 @@ argparser.add_argument("-n", "--n_search_runs", type=int, default=32,
                        help="Sets the max number of hyperparameter search runs per test parameter value (dataset+n_shot)")
 argparser.add_argument("-f", "--folder", default=None,
                        help="Optional folder path in which to save val and test results. By default creates folder for VLM and Classifier choice")
+argparser.add_argument("--learning_rate", type=float, default=1e-3)
+argparser.add_argument("--epochs", type=int, default=5)
+argparser.add_argument("--batch_size", type=int, default=8)
 args, unknown_args_list = argparser.parse_known_args()
 
 # Attempt to parse unknown args as vlm/classifier parameter overrides, like "--classifier.epochs 5 10 20"
@@ -85,6 +92,10 @@ if args.vlm == "videoclip":
 
     fixed_vlm_kwargs["num_seconds"] = 4
     fixed_vlm_kwargs["sample_strat"] = "spread"
+    fixed_vlm_kwargs["use_cuda"] = True
+elif args.vlm == "fit":
+    from model.frozenintime.fit import FiTVLM as VLM
+
     fixed_vlm_kwargs["use_cuda"] = True
 else:
     raise NotImplementedError
@@ -420,7 +431,6 @@ for test_params in pbar:
     Define functions for skopt optimizer methods, or for generally running tests with any sampled hyperparam values
     '''
 
-
     # skopt loss function
     @skopt.utils.use_named_args(hyperparam_space)
     def val_neg_accuracy(**hyperparam_kwargs):
@@ -434,6 +444,9 @@ for test_params in pbar:
             vlm = VLM(**dict(fixed_vlm_kwargs, **vlm_kwargs))
             cur_vlm_kwargs = vlm_kwargs
 
+        # Train appropriately before calculating accuracy
+        vlm.train(query_dataset_val, support_dataset_val, args.learning_rate, args.epochs, args.batch_size, test_kwargs["n_way"],
+                test_kwargs["n_support"], test_kwargs["n_query"], test_kwargs["n_episodes"])
         # Update classifier
         classifier = Classifier(vlm, **dict(fixed_classifier_kwargs, **classifier_kwargs))
 
@@ -698,6 +711,10 @@ for test_params in pbar:
     if vlm is None or cur_vlm_kwargs != vlm_kwargs:
         vlm = VLM(**fixed_vlm_kwargs, **vlm_kwargs)
         cur_vlm_kwargs = vlm_kwargs
+
+    # Appropriately train model
+    vlm.train(query_dataset_val, support_dataset_val, args.learning_rate, args.epochs, args.batch_size, test_kwargs["n_way"],
+            test_kwargs["n_support"], test_kwargs["n_query"], test_kwargs["n_episodes"])
 
     # Update classifier
     classifier = Classifier(vlm, **fixed_classifier_kwargs, **classifier_kwargs)

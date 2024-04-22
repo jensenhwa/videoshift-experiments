@@ -1,0 +1,20 @@
+PATH IS: model/frozenintime/frozenintime/configs/videocompare.json
+CKPT SAVE DIR: model/frozenintime/frozenintime/saved
+######USING ATTENTION STYLE:  frozen-in-time
+Test Run Complete!
+Accuracy: 0.0074401835463782364
+Dataset: ['homageactions'].v.test
+Test: {
+  "n_way": 386,
+  "n_support": 1,
+  "n_query": null,
+  "n_episodes": 4
+}
+VLM: {
+  "path": "model/frozenintime/frozenintime/configs/videocompare.json",
+  "num_seconds": 2,
+  "use_cuda": true
+}
+Classifier: {
+  "regularization": 0.14497406703726315
+}
