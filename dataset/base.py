@@ -129,6 +129,7 @@ class DatasetHandler:
                     else:
                         self.data_dict[key] = data[key]
 
+        
         # Artificially limit the number of classes after the fact
         if self.class_limit is not None and self.class_limit < len(self.data_dict):
             for extra_class in list(self.data_dict.keys())[self.class_limit:]:
@@ -148,7 +149,6 @@ class DatasetHandler:
                 for cat in list(self.data_dict.keys()):
                     if cat not in train_dataset.data_dict.keys():
                         del self.data_dict[cat]
-
     def id(self) -> str:
         if self.split_type == "class":
             out = f"{self.name}.c.{self.split}"

@@ -173,7 +173,7 @@ class FiTVLM(SimilarityVLM):
     def text_encoder_over_embeds(self, text):
         with torch.no_grad():
             input_word_embeds = self.get_input_word_embeddings([text])
-        return input_word_embeds.cpu().numpy()
+        return input_word_embeds.cpu()
 
     def open_video(self, video_path: str) -> np.ndarray:
         """
@@ -198,7 +198,7 @@ class FiTVLM(SimilarityVLM):
         for i in [0,stride, 2*stride, self.model.video_params.get('num_frames')]:
             sample = []
             for chunk in inputs:
-                sample.append(chunk[i])
+                sample.append(chunk[min(i,chunk.shape[0]-1)])
             sample = torch.stack(sample).float()
             sample = self.transforms(sample)
             

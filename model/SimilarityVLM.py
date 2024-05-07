@@ -23,7 +23,7 @@ class SimilarityVLM(ABC):
     """
 
     # TODO: Standardize the usage of `load_model` across all VLMs so that constructor creates fully initialized model
-    def __init__(self, cache_file=None, reset_cache=False):
+    def __init__(self, cache_file=None, reset_cache=True):
         """
         Sets up embedding cache, leaves model-specific setup and loading to subclass __init__().
         :param cache_file: File to a cache file for precomputing video/text embeddings and enabling faster computation.
@@ -110,7 +110,7 @@ class SimilarityVLM(ABC):
             # self.disk_cache.close()
             # self.disk_cache = shelve.open(self.cache_file)
 
-        return text_embed
+        return text_embed.cpu().detach()
 
     def compute_video_embeds(self, video_path: str, subvideo_start_frame: Optional[int] = None,
             subvideo_end_frame: Optional[int] = None):
@@ -139,7 +139,7 @@ class SimilarityVLM(ABC):
             # self.disk_cache.close()
             # self.disk_cache = shelve.open(self.cache_file)
 
-        return vid_embed
+        return vid_embed.cpu().detach()
 
     @abstractmethod
     def logit_scale(self) -> float:

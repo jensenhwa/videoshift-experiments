@@ -70,6 +70,7 @@ class FewShotTestHandler:
                                                   val_tuning_dataset)
         except ValueError as e:
             # Skip invalid tests (if dataset too small, etc)
+            print(e)
             return None
 
         task_accuracies = []
@@ -81,7 +82,11 @@ class FewShotTestHandler:
                                                    val_tuning_vid_paths, val_tuning_vid_labels)
 
             # Compute accuracy for this sampled task
-            correct_predictions = np.sum(query_predictions == query_vid_labels)
+            correct_predictions = 0
+            for i in range(query_predictions.shape[0]):
+                if query_vid_labels[i] in query_predictions[i]:
+                    correct_predictions += 1
+            #correct_predictions = np.sum(query_predictions == query_vid_labels)
             task_accuracy = correct_predictions / len(query_vid_paths)
             task_accuracies.append(task_accuracy)
 
@@ -111,7 +116,7 @@ Test Results DataFrame Utilities
 
 
 def dataframe_format(classifier: FewShotClassifier, query_dataset: DatasetHandler, support_dataset: DatasetHandler,
-                     n_way: int, n_support: int, n_query: int, n_episodes: int,
+        n_way: int, n_support: int, n_query: int, n_episodes: int,
                      val_tuning_dataset: Optional[DatasetHandler],
                      accuracy: Optional[float] = None, accuracy_std: Optional[float] = None) -> dict:
     row = {
@@ -150,11 +155,11 @@ def dataframe_format(classifier: FewShotClassifier, query_dataset: DatasetHandle
 def filter_test_results(results: pd.DataFrame, column_value_dict: dict) -> pd.DataFrame:
     if len(results) == 0:
         return results
-
     valid_indices = np.ones(len(results)).astype(bool)
     for col, val in column_value_dict.items():
         if col not in results.columns:
             valid_indices &= False
+            return results[valid_indices]
         if pd.isna(val):
             valid_indices &= pd.isna(results[col])
         else:
@@ -237,10 +242,10 @@ def find_hyperparameters(results: pd.DataFrame,
     results = results[results["query_dataset"].str.split(".", expand=True)[2] == val_split]
 
     grouped_results = results \
-        .groupby(group_by_cols + hyperparam_cols, as_index=False, dropna=False).agg(
-        {col: np.mean for col in target_cols}) \
-        .sort_values("accuracy", ascending=False).drop_duplicates(group_by_cols).drop(columns=target_cols)
-
+        .groupby(group_by_cols + hyperparam_cols, as_index=False, dropna=False).agg(\
+        {col: np.mean for col in target_cols}).sort_values("accuracy", ascending=False)\
+        .drop_duplicates(group_by_cols).drop(columns=target_cols)
+    
     return grouped_results
 
 
