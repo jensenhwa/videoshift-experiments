@@ -12,9 +12,13 @@ from FewShotTestHandler import FewShotTestHandler, optimize_hyperparameters, fin
     filter_test_results
 from dataset.base import DatasetHandler
 from similarity_metrics import Similarity
+import sys
+
+sys.path.append(os.path.join(sys.path[0], 'model', 'frozenintime', 'frozenintime'))
+sys.path.append(os.path.join(sys.path[0], 'model', 'videoclip', 'MMPT_updated'))
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument("vlm", choices=["clip", "miles", "videoclip"],
+argparser.add_argument("vlm", choices=["clip", "miles", "videoclip", "fit"],
                        help="VLM to run. Requires corresponding conda environment")
 argparser.add_argument("classifier", choices=["vl_proto", "hard_prompt_vl_proto", "nearest_neighbor", "gaussian_proto",
                                               "linear", "subvideo", "tip_adapter", "coop", "cona", "cona_adapter",
@@ -32,7 +36,7 @@ argparser.add_argument("--n_episodes", type=int, default=4,
                        help="Number of support set samples to repeat every test over")
 argparser.add_argument("--val_tuning", type=lambda x: (x == "True"), default=True,
                        help="Whether or not the final trained classifier is reloaded from the epoch with the best val performance")
-argparser.add_argument("--class-split", action="store_true",
+argparser.add_argument("--class_split", action="store_true",
                        help="Flag to use class-wise splitting (meta-learning paradigm) instead of video-wise splitting (finetuning paradigm)")
 argparser.add_argument("-m", "--method", default="grid", choices=["gp", "forest", "random", "grid"],
                        help="Hyperparameter search method name.")
@@ -40,6 +44,11 @@ argparser.add_argument("-n", "--n_search_runs", type=int, default=32,
                        help="Sets the max number of hyperparameter search runs per test parameter value (dataset+n_shot)")
 argparser.add_argument("-f", "--folder", default=None,
                        help="Optional folder path in which to save val and test results. By default creates folder for VLM and Classifier choice")
+argparser.add_argument("--unfreeze_head", action="store_true", help="Flag to unfreeze and train head")
+argparser.add_argument("--learning_rate", type=float, default=1e-3)
+argparser.add_argument("--epochs", type=int, default=5)
+argparser.add_argument("--batch_size", type=int, default=32)
+argparser.add_argument("--top_k", type=int, default=[1,5,10,20,50])
 args, unknown_args_list = argparser.parse_known_args()
 
 # Attempt to parse unknown args as vlm/classifier parameter overrides, like "--classifier.epochs 5 10 20"
@@ -67,13 +76,14 @@ Test Setup
 test_params_dict = {}
 
 # Dataset Params - dataset.____ keys are passed into DatasetHandler constructor
-test_params_dict["dataset.name"] = [args.dataset]
+test_params_dict["dataset.name"] = args.dataset
 
 # Few-Shot Test Params - test.____ keys are passed into few-shot test call
 test_params_dict["test.n_way"] = args.n_way  # None value gets manually converted to the max size for each dataset
 test_params_dict["test.n_support"] = args.n_shots
 test_params_dict["test.n_query"] = [None]
 test_params_dict["test.n_episodes"] = [args.n_episodes]
+test_params_dict["top_k"] = args.top_k
 
 '''
 VLM Setup
@@ -85,6 +95,10 @@ if args.vlm == "videoclip":
 
     fixed_vlm_kwargs["num_seconds"] = 4
     fixed_vlm_kwargs["sample_strat"] = "spread"
+    fixed_vlm_kwargs["use_cuda"] = True
+elif args.vlm == "fit":
+    from model.frozenintime.fit import FiTVLM as VLM
+
     fixed_vlm_kwargs["use_cuda"] = True
 else:
     raise NotImplementedError
@@ -401,6 +415,7 @@ for test_params in pbar:
             support_dataset_val = support_dataset_test = DatasetHandler(**dataset_kwargs, split="train",
                                                                         split_type="video")
             val_tuning_dataset = query_dataset_val if args.val_tuning else None
+            
 
         # Alternate case: meta-learning paradigm, classwise splits, support set + query set drawn from same split
         # val-tuning is disabled with this setting
@@ -415,11 +430,9 @@ for test_params in pbar:
     # Convert n_way = None into n_way = max-ways
     if test_kwargs["n_way"] is None:
         test_kwargs["n_way"] = min(query_dataset_val.category_count(), query_dataset_test.category_count())
-
     '''
     Define functions for skopt optimizer methods, or for generally running tests with any sampled hyperparam values
     '''
-
 
     # skopt loss function
     @skopt.utils.use_named_args(hyperparam_space)
@@ -434,11 +447,16 @@ for test_params in pbar:
             vlm = VLM(**dict(fixed_vlm_kwargs, **vlm_kwargs))
             cur_vlm_kwargs = vlm_kwargs
 
+        # Train appropriately before calculating accuracy
+        if args.unfreeze_head:
+            vlm.train(query_dataset_val, support_dataset_val, args.learning_rate, args.epochs, args.batch_size, test_kwargs["n_way"],
+                    test_kwargs["n_support"], test_kwargs["n_query"], test_kwargs["n_episodes"])
         # Update classifier
-        classifier = Classifier(vlm, **dict(fixed_classifier_kwargs, **classifier_kwargs))
+        classifier = Classifier(vlm, test_params['top_k'], **dict(fixed_classifier_kwargs, **classifier_kwargs))
 
         accuracy = val_run_handler.run_few_shot_test(classifier, query_dataset_val, support_dataset_val, **test_kwargs,
                                                      val_tuning_dataset=val_tuning_dataset)
+
         return -1 * accuracy
 
 
@@ -468,6 +486,7 @@ for test_params in pbar:
         test_run_handler.results,
         dict(
             test_kwargs,
+            **{f"classifier.top_k": test_params['top_k']},
             query_dataset=query_dataset_test.id(),
             support_dataset=support_dataset_test.id(),
             val_tuning_dataset=val_tuning_dataset.id() if val_tuning_dataset is not None else None,
@@ -496,6 +515,7 @@ for test_params in pbar:
             val_run_handler.results,
             dict(
                 test_kwargs,
+                **{f"classifier.top_k": test_params['top_k']},
                 query_dataset=query_dataset_val.id(),
                 support_dataset=support_dataset_val.id(),
                 val_tuning_dataset=val_tuning_dataset.id() if val_tuning_dataset is not None else None,
@@ -600,6 +620,7 @@ for test_params in pbar:
             val_run_handler.results,
             dict(
                 test_kwargs,
+                **{f"classifier.top_k": test_params['top_k']},
                 query_dataset=query_dataset_val.id(),
                 support_dataset=support_dataset_val.id(),
                 val_tuning_dataset=val_tuning_dataset.id() if val_tuning_dataset is not None else None,
@@ -647,11 +668,12 @@ for test_params in pbar:
         val_run_handler.results,
         hyperparam_cols=[col for col in val_run_handler.results if
                          col.startswith("classifier.") or col.startswith("vlm.")]
-    )
+        )
     matching_hyperparam_values = filter_test_results(
         best_hyperparam_values,
         dict(
             test_kwargs,
+            **{f"classifier.top_k": test_params['top_k']},
             query_dataset=query_dataset_val.id(),
             support_dataset=support_dataset_val.id(),
             val_tuning_dataset=val_tuning_dataset.id() if val_tuning_dataset is not None else None,
@@ -699,8 +721,13 @@ for test_params in pbar:
         vlm = VLM(**fixed_vlm_kwargs, **vlm_kwargs)
         cur_vlm_kwargs = vlm_kwargs
 
+    # Appropriately train model
+    if args.unfreeze_head:
+        vlm.train(query_dataset_val, support_dataset_val, args.learning_rate, args.epochs, args.batch_size, test_kwargs["n_way"],
+                test_kwargs["n_support"], test_kwargs["n_query"], test_kwargs["n_episodes"])
+
     # Update classifier
-    classifier = Classifier(vlm, **fixed_classifier_kwargs, **classifier_kwargs)
+    classifier = Classifier(vlm, test_params['top_k'], **fixed_classifier_kwargs, **classifier_kwargs)
 
     test_acc = test_run_handler.run_few_shot_test(classifier, query_dataset_test, support_dataset_test, **test_kwargs,
                                                   val_tuning_dataset=val_tuning_dataset)

@@ -4,15 +4,16 @@ from sklearn.linear_model import LogisticRegression
 
 from model.SimilarityVLM import SimilarityVLM
 from .base import FewShotClassifier
-
+import torch
 '''
 Simplest Linear Probe Classifier
 '''
 
 class LinearProbeFewShotClassifier(FewShotClassifier):
-    def __init__(self, vlm: SimilarityVLM, regularization: float):
+    def __init__(self, vlm: SimilarityVLM, top_k: int, regularization: float):
         self.vlm = vlm
         self.regularization = float(regularization)
+        self.top_k = top_k
         
     '''
     Returns a dict with the value of all classifier-specific parameters which may affect prediction
@@ -21,7 +22,8 @@ class LinearProbeFewShotClassifier(FewShotClassifier):
     '''
     def params(self) -> dict:
         return {
-            "regularization": self.regularization
+            "regularization": self.regularization,
+            "top_k": self.top_k
         }
         
     '''
@@ -50,24 +52,27 @@ class LinearProbeFewShotClassifier(FewShotClassifier):
         else:
             n_support = 0
             
-            
         # Use default similarity to text embeds if zero-shot
         if n_support == 0:
-            query_embeds = np.array([self.vlm.get_video_embeds(vid) for vid in query_video_paths])
-            text_embeds = np.array([self.vlm.get_text_embeds(name) for name in category_names])
-            query_to_text_similarities = self.vlm.default_similarity_metric()(query_embeds, text_embeds)
-            query_predictions = np.argmax(query_to_text_similarities, axis=1)
-            accuracy = (query_predictions == query_video_labels).mean()
-            return accuracy
-        1/0
+            query_embeds = [torch.tensor(self.vlm.get_video_embeds(vid)).cpu() for vid in query_video_paths]
+            query_embeds = torch.cat(query_embeds)
+            text_embeds = [torch.tensor(self.vlm.get_text_embeds(name), device=query_embeds.device) for name in category_names]
+            text_embeds = torch.cat(text_embeds)
+            query_to_text_similarities = self.vlm.default_similarity_metric()(query_embeds, text_embeds).cpu()
+            query_predictions = np.argpartition(query_to_text_similarities, -1*self.top_k, axis=1)[:,-1*self.top_k:]
+            return query_predictions
+        
         # Linear probe ignoring text embeds
-        query_embeds = np.array([self.vlm.get_video_embeds(vid) for vid in query_video_paths])
-        support_embeds = np.array([self.vlm.get_video_embeds(vid) for vid in support_video_paths.flatten()])
+        query_embeds = [torch.tensor(self.vlm.get_video_embeds(vid)).cpu() for vid in query_video_paths]
+        query_embeds = np.array(torch.cat(query_embeds).view((len(query_embeds), -1)))
+        support_embeds = [torch.tensor(self.vlm.get_video_embeds(vid)).cpu() for vid in support_video_paths.flatten()]
+        support_embeds = np.array(torch.cat(support_embeds).view((len(support_embeds), -1)))
         support_labels = np.repeat(np.arange(n_way), n_support)
+
         
         classifier = LogisticRegression(C = 1/self.regularization, max_iter=1000)
         classifier.fit(support_embeds, support_labels)
-        
-        query_predictions = classifier.predict(query_embeds)
-        accuracy = (query_predictions == query_video_labels).mean()
-        return accuracy
+
+        query_probs = classifier.predict_proba(query_embeds)
+        query_predictions = np.argpartition(query_probs, -1*self.top_k, axis=1)[:,-1*self.top_k:]
+        return query_predictions

@@ -5,10 +5,9 @@ from typing import Optional, List
 
 import torch
 
-from dataset.VideoReaderFromImages import VideoReaderFromImages
-import model.model as module_arch
+from .frozenintime.model.model import sim_matrix, FrozenInTime
 import json
-from utils.util import state_dict_data_parallel_fix
+from .frozenintime.utils.util import state_dict_data_parallel_fix
 import transformers
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -18,11 +17,15 @@ from similarity_metrics import Similarity
 
 from torchvision.io import read_video
 from pytorchvideo.transforms import *
-from torchvision.transforms import Compose, Lambda, CenterCrop, RandomHorizontalFlip
+from torchvision.transforms import Compose, Lambda, CenterCrop, RandomHorizontalFlip, Resize, Normalize
 
 import math
 import decord
 import pdb
+
+from .frozenintime.model.loss import NormSoftmaxLoss
+from dataset.base import DatasetHandler
+from dataset.few_shot_dataset import FewShotTaskDataset
 
 # Default cache locations
 FILE_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -34,7 +37,7 @@ class FiTVLM(SimilarityVLM):
     Similarity-based VLM that uses Frozen-in-Time for frame and text encoders.
     """
 
-    def __init__(self, path: str = "model/frozen-in-time/configs/videocompare.json",
+    def __init__(self, path: str = "model/frozenintime/frozenintime/configs/videocompare.json",
                  num_seconds: int = 2, use_cuda: bool = False,
                  reset_cache: bool = False):
 
@@ -49,8 +52,20 @@ class FiTVLM(SimilarityVLM):
         self.config = json.load(open(path))
         self.num_seconds = int(num_seconds)
         self.use_cuda = bool(use_cuda)
+        self.loss = NormSoftmaxLoss()
 
         self.model = None
+        #Do not load model, this is just dummy model to access methods
+        if path is None:
+            print("Dummy model loaded, no backbone or weights!")
+            return
+
+        assert type(self.path) is str
+        assert type(self.num_seconds) is int
+
+        # Load model
+        self.load_model(path=self.path)
+
         self.cuda = use_cuda and DEVICE == "cuda"
         self.transforms = self.get_transforms()
         self.train_transforms = self.get_train_transforms()
@@ -65,17 +80,6 @@ class FiTVLM(SimilarityVLM):
             text_model_name,
             model_max_length=1e6,
             TOKENIZERS_PARALLELISM=False)
-
-        # Do not load model, this is just dummy model to access methods
-        if path is None:
-            print("Dummy model loaded, no backbone or weights!")
-            return
-
-        assert type(self.path) is str
-        assert type(self.num_seconds) is int
-
-        # Load model
-        self.load_model(path=self.path)
 
         super().__init__(cache_file=os.path.join(FILE_DIR, CACHE_NAME), reset_cache=reset_cache)
 
@@ -92,7 +96,23 @@ class FiTVLM(SimilarityVLM):
             "use_cuda": self.use_cuda
         }
 
-    def load_model(self, path="model/frozen-in-time/configs/videocompare.json"):
+    def logit_scale(self) -> float:
+        raise NotImplementedError
+
+    def input_word_embed_dim(self) -> int:
+        raise NotImplementedError
+
+    def text_start_special_token_count(self) -> int:
+        raise NotImplementedError
+
+    def text_end_special_token_count(self) -> int:
+        raise NotImplementedError
+
+    def text_encoder_from_word_embeddings(self, input_word_embeds: torch.Tensor,
+                                                      attn_mask: torch.Tensor) -> torch.Tensor:
+        raise NotImplementedError
+
+    def load_model(self, path="model/frozenintime/frozenintime/configs/videocompare.json"):
         """
         Loads the model
         :param path:
@@ -105,11 +125,12 @@ class FiTVLM(SimilarityVLM):
               ckpt_save_dir)  #model/frozen-in-time/saved
         module_name = self.config['arch']['type']
         module_args = dict(self.config['arch']['args'])
-        self.model = getattr(module_arch, module_name)(**module_args)
-        pretrained = torch.load(path)
+        self.model = FrozenInTime(**module_args)
+        pretrained = torch.load(self.config["pretrained"], map_location = DEVICE)
         state_dict = state_dict_data_parallel_fix(pretrained['state_dict'], self.model.state_dict())
+        state_dict = self.model._inflate_positional_embeds(state_dict)
         self.model.load_state_dict(state_dict, strict=True)
-
+        self.model.to(DEVICE)
         return
 
     def tokenize(self, text):
@@ -152,7 +173,7 @@ class FiTVLM(SimilarityVLM):
     def text_encoder_over_embeds(self, text):
         with torch.no_grad():
             input_word_embeds = self.get_input_word_embeddings([text])
-            return input_word_embeds.cpu().numpy()
+        return input_word_embeds.cpu()
 
     def open_video(self, video_path: str) -> np.ndarray:
         """
@@ -160,11 +181,7 @@ class FiTVLM(SimilarityVLM):
         :param video:
         :return:
         """
-        if not (video_path.endswith(".mkv") or video_path.endswith(".mp4")):
-            video_reader = VideoReaderFromImages(video_path, num_threads=1)
-        else:
-            video_reader = decord.VideoReader(video_path, num_threads=1)
-        
+        video_reader = decord.VideoReader(video_path, num_threads=1)
         return video_reader.get_batch(range(len(video_reader)))
 
     def transform(self, video, random_augment: bool = False):
@@ -173,16 +190,26 @@ class FiTVLM(SimilarityVLM):
         :param video:
         :return:
         """
-        if random_augment:
-            inputs = self.train_transforms(video)
-        else:
-            inputs = self.transforms(video)
-        # B, T, FPS, H, W, C (VideoCLIP is trained on 30 fps of s3d)
-        _, h, w, c = inputs.size()
-        inputs = inputs.view(1, -1, 30, h, w, c)  # Add singleton batch dimension
-        return inputs
+        stride = self.config['data_loader']['args']['video_params']['stride']
+        inputs = torch.permute(video, (0,3,2,1))
+        inputs = torch.chunk(inputs, self.model.video_params.get('num_frames'))
+        
+        samples = []
+        for i in [0,stride, 2*stride, self.model.video_params.get('num_frames')]:
+            sample = []
+            for chunk in inputs:
+                sample.append(chunk[min(i,chunk.shape[0]-1)])
+            sample = torch.stack(sample).float()
+            sample = self.transforms(sample)
+            
+            f, c, w, h = sample.size()
+            sample = sample.view(1,f,c,w,h)
+            samples.append(sample)
 
-    def video_encoder(self, video_path: str) -> np.ndarray:
+        return torch.stack(samples).float()
+
+    def video_encoder(self, video_path: str, subvideo_start_frame: Optional[int] = None, 
+            subvideo_end_frame: Optional[int] = None, random_augment: bool = False) -> np.ndarray:
         """
         Load, transform and encode a video file into a joint text/video embedding space
         :param video:
@@ -192,16 +219,22 @@ class FiTVLM(SimilarityVLM):
         video_path_split = video_path.split(":")
         if len(video_path_split) == 3:
             video_path = video_path_split[0]
-
+        
         video = self.open_video(video_path)
-        #video = self.transform(video)
+        video_samples = self.transform(video)
 
         if self.cuda:
-            video = video.to(DEVICE)
+            video_samples = video_samples.to(DEVICE)
 
-        with torch.no_grad():
-            video_features = self.model.compute_video(video)
-            video_features = video_features.cpu().numpy()
+        video_features = []
+        for sample in torch.unbind(video_samples):
+            with torch.no_grad():
+                video_feature = self.model.video_model.forward_features(sample)
+            video_feature = self.model.video_model.head(video_feature)
+            video_feature = self.model.vid_proj(video_feature)
+            video_features.append(video_feature)
+        
+        video_features = torch.mean(torch.stack(video_features), dim=0)
         return video_features
 
     def default_similarity_metric(self) -> Similarity:
@@ -209,19 +242,15 @@ class FiTVLM(SimilarityVLM):
         Returns a reference to the default similarity metric used by this VLM
         :return:
         """
-        return module_arch.sim_matrix
+        return sim_matrix
 
     def get_transforms(self):
-        # Input is T, H, W, C
+        #Input is T, W, H, C
         transforms = Compose([
-            # Change to C, T, H, W for UniformTemporalSubsampling
-            Permute((3, 0, 1, 2)),
-            UniformTemporalSubsample(30*self.num_seconds),
-            Lambda(lambda x: x / 255.0),  # Only normalization for VideoCLIP is / 255.0
-            ShortSideScale(size=256),
-            CenterCrop(224),
-            # C, T, H, W -->, T, H, W, C
-            Permute((1, 2, 3, 0)),
+            Resize(256),
+            CenterCrop(256),
+            Resize(224),
+            Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
         ])
         return transforms
 
@@ -235,8 +264,39 @@ class FiTVLM(SimilarityVLM):
             RandomResizedCrop(target_height=224, target_width=224, scale=(0.08, 1.0), aspect_ratio=(0.75, 1.3333)),
             RandomHorizontalFlip(p=0.5),
             # Change back to T, H, W, C
-            Permute(dims=(0, 2, 3, 1)),
+            Permute(dims=(1, 3, 0, 2)),
 
         ])
 
         return transforms
+
+    def train(self, query_dataset: DatasetHandler, support_dataset: DatasetHandler, learning_rate, epochs, batch_size, n_way: int, n_support: int, n_query: Optional[int] = None, n_episodes: int = 1000, val_tuning_dataset: Optional[DatasetHandler] = None):
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=0)
+
+        try:
+            few_shot_dataset = FewShotTaskDataset(query_dataset, support_dataset, n_episodes, n_way, n_support, n_query,
+                                                  val_tuning_dataset)
+        except ValueError as e:
+            # Skip invalid tests (if dataset too small, etc)
+            print(e)
+            return None
+        
+        for category_names, support_vid_paths, query_vid_paths, query_vid_labels, val_paths, val_labels in few_shot_dataset:
+            train_dataloader = torch.utils.data.DataLoader(list(zip(query_vid_paths.flatten(), category_names.flatten())), batch_size = batch_size, num_workers=0, shuffle=True)
+            
+            for epoch_idx in range(epochs):
+                for batch_idx, vids in enumerate(train_dataloader):
+                    vid_paths = vids[0]
+                    vid_labels = vids[1]
+                    
+                    optimizer.zero_grad()
+                    
+                    query_embeds = torch.cat([self.compute_video_embeds(vid_path) for vid_path in vid_paths])
+                    text_embeds = torch.cat([torch.tensor(self.get_text_embeds(name), device=query_embeds.device) for name in vid_labels])
+
+                    output = self.default_similarity_metric()(text_embeds, query_embeds)
+                    
+                    loss = self.loss(output)
+                    loss.backward()
+                    optimizer.step()
+        return

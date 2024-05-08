@@ -3,7 +3,7 @@
 	url = git@github.com:zanedurante/MMPT_updated.git
 [submodule "model/videoclip/fairseq"]
 	path = model/videoclip/fairseq
-	url = git@github.com:facebookresearch/fairseq.git
+	url = https://github.com/facebookresearch/fairseq.git
 [submodule "model/frozenintime/frozen-in-time"]
-	path = model/frozenintime/frozen-in-time
+	path = model/frozenintime/frozenintime
 	url = https://github.com/m-bain/frozen-in-time.git
