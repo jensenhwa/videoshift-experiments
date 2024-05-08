@@ -78,7 +78,7 @@ class FewShotTestHandler:
         total_correct = 0
         dataset_iter = tqdm(few_shot_dataset, leave=False)
         for category_names, support_vid_paths, query_vid_paths, query_vid_labels, val_tuning_vid_paths, val_tuning_vid_labels in dataset_iter:
-            query_predictions = classifier.predict(category_names, support_vid_paths, query_vid_paths,
+            query_predictions = classifier.predict(category_names, support_vid_paths, query_vid_paths, query_vid_labels,
                                                    val_tuning_vid_paths, val_tuning_vid_labels)
 
             # Compute accuracy for this sampled task
