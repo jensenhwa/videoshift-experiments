@@ -162,8 +162,11 @@ cython_debug/
 #slurm out files
 *.out
 
-#frozenintime cache
+#cache
 model/frozenintime/cache
+model/videoclip/cache
 
 #model parameters
 *.pth.tar
+
+*.txt

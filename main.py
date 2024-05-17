@@ -28,7 +28,7 @@ argparser.add_argument("-d", "--dataset", nargs="+", default=["homageactions", "
                        help="Which dataset name to run on")
 argparser.add_argument("-d_test", "--dataset_test", type=str,
                        help="Which dataset name to test on")
-argparser.add_argument("-s", "--n_shots", nargs="+", type=int, default=[1, 2, 4, 8, 16],
+argparser.add_argument("-s", "--n_shots", nargs="+", type=int, default=[0],
                        help="Number of shots to run on")
 argparser.add_argument("-w", "--n_way", nargs="+", type=int, default=[None],
                        help="Number of categories to classify between. Default value None indicates choosing the max categories for each dataset.")
@@ -165,7 +165,7 @@ elif args.classifier == "linear":
     from classifier import LinearProbeFewShotClassifier as Classifier
 
     classifier_hyperparams.append(skopt.space.Real(
-        1e-2, 1e2,
+        1e-2, 1e1,
         name="regularization", prior="log-uniform"
     ))
 elif args.classifier == "subvideo":

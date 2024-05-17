@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from model.SimilarityVLM import SimilarityVLM
 from .base import FewShotClassifier
 import torch
+import warnings
 '''
 Simplest Linear Probe Classifier
 '''
@@ -54,19 +55,22 @@ class LinearProbeFewShotClassifier(FewShotClassifier):
             
         # Use default similarity to text embeds if zero-shot
         if n_support == 0:
-            query_embeds = [torch.tensor(self.vlm.get_video_embeds(vid)).cpu() for vid in query_video_paths]
-            query_embeds = torch.cat(query_embeds)
-            text_embeds = [torch.tensor(self.vlm.get_text_embeds(name), device=query_embeds.device) for name in category_names]
-            text_embeds = torch.cat(text_embeds)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                query_embeds = [torch.tensor(self.vlm.get_video_embeds(vid)).cpu() for vid in query_video_paths]
+                query_embeds = torch.stack(query_embeds)
+                text_embeds = [torch.tensor(self.vlm.get_text_embeds(name), device=query_embeds.device) for name in category_names]
+                text_embeds = torch.stack(text_embeds)
             query_to_text_similarities = self.vlm.default_similarity_metric()(query_embeds, text_embeds).cpu()
             query_predictions = np.argpartition(query_to_text_similarities, -1*self.top_k, axis=1)[:,-1*self.top_k:]
             return query_predictions
         
         # Linear probe ignoring text embeds
         query_embeds = [torch.tensor(self.vlm.get_video_embeds(vid)).cpu() for vid in query_video_paths]
-        query_embeds = np.array(torch.cat(query_embeds).view((len(query_embeds), -1)))
+
+        query_embeds = np.array(torch.stack(query_embeds).view((len(query_embeds), -1)))
         support_embeds = [torch.tensor(self.vlm.get_video_embeds(vid)).cpu() for vid in support_video_paths.flatten()]
-        support_embeds = np.array(torch.cat(support_embeds).view((len(support_embeds), -1)))
+        support_embeds = np.array(torch.stack(support_embeds).view((len(support_embeds), -1)))
         support_labels = np.repeat(np.arange(n_way), n_support)
 
         
