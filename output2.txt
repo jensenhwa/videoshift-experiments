@@ -1,2 +1,0 @@
-PATH IS: model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml
-CKPT SAVE DIR: model/videoclip/MMPT_updated/runs/retri/videoclip
