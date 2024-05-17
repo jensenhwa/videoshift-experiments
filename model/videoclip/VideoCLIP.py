@@ -2,6 +2,7 @@ import numpy as np
 import random
 import os
 from typing import Optional, List
+import warnings
 
 import torch
 
@@ -20,6 +21,9 @@ from torchvision.transforms import Compose, Lambda, CenterCrop, RandomHorizontal
 import math
 import decord
 import pdb
+
+from dataset.base import DatasetHandler
+from dataset.few_shot_dataset import FewShotTaskDataset
 
 # Default cache locations
 FILE_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -48,6 +52,7 @@ class VideoClipVLM(SimilarityVLM):
         self.num_seconds = int(num_seconds)
         self.sample_strat = str(sample_strat)
         self.use_cuda = bool(use_cuda)
+        self.loss = torch.nn.MSELoss()
 
         self.model = None
         self.cuda = use_cuda and DEVICE == "cuda"
@@ -128,6 +133,9 @@ class VideoClipVLM(SimilarityVLM):
             self.model.caps = caps
             self.model.cmasks = cmasks
 
+        for name, param in self.model.named_parameters():
+            if "videomlp" not in name:
+                param.requires_grad = False
         return
 
     def tokenize(self, text):
@@ -225,7 +233,7 @@ class VideoClipVLM(SimilarityVLM):
     def text_encoder_over_embeds(self, text):
         with torch.no_grad():
             input_word_embeds, attn_mask = self.get_input_word_embeddings([text])
-            return self.text_encoder_from_word_embeddings(input_word_embeds, attn_mask)[0].cpu().numpy()
+            return self.text_encoder_from_word_embeddings(input_word_embeds, attn_mask)[0].cpu()
 
     def open_video(self, video_path: str, subvideo_start_frame: Optional[int] = None,
                    subvideo_end_frame: Optional[int] = None, random_augment: bool = False) -> np.ndarray:
@@ -281,9 +289,8 @@ class VideoClipVLM(SimilarityVLM):
         if self.cuda:
             video = video.to(DEVICE)
 
-        with torch.no_grad():
-            video_features = self.model.forward(video)
-            video_features = video_features.cpu().numpy()[0]
+        video_features = self.model.forward(video)
+        video_features = video_features.cpu()[0]
         return video_features
 
     def default_similarity_metric(self) -> Similarity:
@@ -394,3 +401,36 @@ class VideoClipVLM(SimilarityVLM):
             return np.array(focus_frame_indices)
 
         raise ValueError(f"Unrecognized sample strat: {self.sample_strat}")
+    
+    def train(self, query_dataset: DatasetHandler, support_dataset: DatasetHandler, learning_rate, epochs, batch_size, n_way: int, n_support: int, n_query: Optional[int] = None, n_episodes: int = 1000, val_tuning_dataset: Optional[DatasetHandler] = None):
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=0)
+
+        try:
+            few_shot_dataset = FewShotTaskDataset(query_dataset, support_dataset, n_episodes, n_way, n_support, n_query,
+                                                  val_tuning_dataset)
+        except ValueError as e:
+            # Skip invalid tests (if dataset too small, etc)
+            print(e)
+            return None
+        
+        for category_names, support_vid_paths, query_vid_paths, query_vid_labels, val_paths, val_labels in few_shot_dataset:
+            train_dataloader = torch.utils.data.DataLoader(list(zip(query_vid_paths.flatten(), category_names.flatten())), batch_size = batch_size, num_workers=0, shuffle=True)
+            
+            for epoch_idx in range(epochs):
+                for batch_idx, vids in enumerate(train_dataloader):
+                    vid_paths = vids[0]
+                    vid_labels = vids[1]
+                    
+                    optimizer.zero_grad()
+                    
+                    query_embeds = torch.stack([self.compute_video_embeds(vid_path) for vid_path in vid_paths])
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        text_embeds = torch.stack([torch.tensor(self.get_text_embeds(name), device=query_embeds.device) for name in vid_labels])
+                
+                    output = self.default_similarity_metric()(text_embeds, query_embeds)
+                    
+                    loss = self.loss(output, torch.zeros(output.shape))
+                    loss.backward()
+                    optimizer.step()
+        return

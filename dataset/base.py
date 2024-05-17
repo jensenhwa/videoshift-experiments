@@ -24,7 +24,7 @@ KINETICS_100_DIR = "/home/datasets/kinetics_100"
 SMSM_DIR = "/home/datasets/smsm_cmn"
 MOMA_DIR = "/home/datasets/moma"
 
-DEFAULT_MIN_TRAIN_VIDS = 16
+DEFAULT_MIN_TRAIN_VIDS = 1
 
 
 REPLACEMENTS = {
@@ -143,7 +143,7 @@ class DatasetHandler:
                 for cat in list(self.data_dict.keys()):
                     if len(self.data_dict[cat]) < min_train_videos:
                         del self.data_dict[cat]
-            else:
+            elif split == "val":
                 train_dataset = DatasetHandler(name, split="train", split_type=split_type, class_limit=class_limit,
                                                min_train_videos=min_train_videos)
                 for cat in list(self.data_dict.keys()):

@@ -1,6 +1,6 @@
 from enum import Enum
 import numpy as np
-
+import torch
 
 class Similarity(Enum):
     DOT = 1
@@ -18,7 +18,8 @@ class Similarity(Enum):
 
     def __call__(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         if self is Similarity.DOT:
-            return np.sum(a[:, None, :] * b[None, :, :], axis=2)
+            product = a[:, None, :] * b[None, :, :]
+            return torch.sum(product, dim=2)
 
         if self is Similarity.COSINE:
             a_mag = np.sqrt(np.sum(np.square(a), axis=1))

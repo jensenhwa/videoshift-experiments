@@ -244,7 +244,7 @@ def find_hyperparameters(results: pd.DataFrame,
     grouped_results = results \
         .groupby(group_by_cols + hyperparam_cols, as_index=False, dropna=False).agg(\
         {col: np.mean for col in target_cols}).sort_values("accuracy", ascending=False)\
-        .drop_duplicates(group_by_cols).drop(columns=target_cols)
+        .drop_duplicates(hyperparam_cols).drop(columns=target_cols)
     
     return grouped_results
 
