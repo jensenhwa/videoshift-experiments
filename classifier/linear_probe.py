@@ -67,6 +67,7 @@ class LinearProbeFewShotClassifier(FewShotClassifier):
         
         # Linear probe ignoring text embeds
         query_embeds = [torch.tensor(self.vlm.get_video_embeds(vid)).cpu() for vid in query_video_paths]
+
         query_embeds = np.array(torch.stack(query_embeds).view((len(query_embeds), -1)))
         support_embeds = [torch.tensor(self.vlm.get_video_embeds(vid)).cpu() for vid in support_video_paths.flatten()]
         support_embeds = np.array(torch.stack(support_embeds).view((len(support_embeds), -1)))

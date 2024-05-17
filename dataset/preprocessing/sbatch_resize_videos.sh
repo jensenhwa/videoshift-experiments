@@ -5,4 +5,4 @@
 #SBATCH --mail-user=jphwa@cs.stanford.edu
 #SBATCH --mail-type=ALL
 #SBATCH --output=preprocess_homage_%j.out
-~/vision2/sail_panasonic/panasonic-venv/bin/python ~/vision2/sail_panasonic/videocompare/dataset/preprocessing/resize_videos.py
+~/vision2/sail_panasonic/panasonic-venv/bin/python ~/vision2/sail_panasonic/videocompare/dataset/preprocessing/resize_interactadl.py
