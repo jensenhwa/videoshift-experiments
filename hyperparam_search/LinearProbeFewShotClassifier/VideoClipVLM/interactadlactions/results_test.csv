@@ -1,4 +1,0 @@
-vlm_class,vlm.num_seconds,vlm.path,vlm.sample_strat,vlm.use_cuda,classifier_class,classifier.regularization,classifier.top_k,query_dataset,support_dataset,n_way,n_support,n_query,n_episodes,val_tuning_dataset,accuracy,accuracy_std
-VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,1,metaverseactions.c.test,metaverseactions.c.test,13,0,,4,,0.052176222820931206,0.0
-VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,5,metaverseactions.c.test,metaverseactions.c.test,13,0,,4,,0.16218267369938907,0.0
-VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,10,metaverseactions.c.test,metaverseactions.c.test,13,0,,4,,0.854172200508481,0.0

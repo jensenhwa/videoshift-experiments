@@ -170,3 +170,5 @@ model/videoclip/cache
 *.pth.tar
 
 *.txt
+
+hyperparam_search

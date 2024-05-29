@@ -1,9 +1,0 @@
-vlm_class,vlm.num_seconds,vlm.path,vlm.use_cuda,classifier_class,classifier.regularization,classifier.top_k,query_dataset,support_dataset,n_way,n_support,n_query,n_episodes,val_tuning_dataset,accuracy,accuracy_std
-FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,1,interactadlactions.c.val,interactadlactions.c.val,13,0,,4,,0.0207284572105419,0.0098331304621426
-FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,5,interactadlactions.c.val,interactadlactions.c.val,13,0,,4,,0.1495410127331951,0.0083973155435765
-FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,10,interactadlactions.c.val,interactadlactions.c.val,13,0,,4,,0.5833580100681078,0.0927251863873397
-FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,1,interactadlactions.c.val,interactadlactions.c.val,66,0,,4,,0.006006006006006006,0.0
-FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,5,interactadlactions.c.val,interactadlactions.c.val,66,0,,4,,0.036036036036036036,0.0
-FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,10,interactadlactions.c.val,interactadlactions.c.val,66,0,,4,,0.07107107107107107,0.0
-FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,20,interactadlactions.c.val,interactadlactions.c.val,66,0,,4,,0.18518518518518517,0.0
-FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,50,interactadlactions.c.val,interactadlactions.c.val,66,0,,4,,0.8328328328328328,0.0
