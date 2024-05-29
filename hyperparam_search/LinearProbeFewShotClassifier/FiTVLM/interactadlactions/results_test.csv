@@ -1,0 +1,9 @@
+vlm_class,vlm.num_seconds,vlm.path,vlm.use_cuda,classifier_class,classifier.regularization,classifier.top_k,query_dataset,support_dataset,n_way,n_support,n_query,n_episodes,val_tuning_dataset,accuracy,accuracy_std
+FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,1,metaverseactions.c.test,metaverseactions.c.test,13,0,,4,,0.3643987401813835,0.0
+FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,5,metaverseactions.c.test,metaverseactions.c.test,13,0,,4,,0.4706864493606041,0.0
+FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,10,metaverseactions.c.test,metaverseactions.c.test,13,0,,4,,0.8523507760027321,0.0
+FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,1,interactadlactions.c.test,interactadlactions.c.test,66,0,,4,,0.028341384863123993,8.712354786194323e-05
+FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,5,interactadlactions.c.test,interactadlactions.c.test,66,0,,4,,0.09822866344605476,0.0007379806173557574
+FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,10,interactadlactions.c.test,interactadlactions.c.test,66,0,,4,,0.16924315619967795,0.006201834039289334
+FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,20,interactadlactions.c.test,interactadlactions.c.test,66,0,,4,,0.36618357487922704,0.012653529831380239
+FiTVLM,2,model/frozenintime/frozenintime/configs/videocompare.json,True,LinearProbeFewShotClassifier,0.01,50,interactadlactions.c.test,interactadlactions.c.test,66,0,,4,,0.7533011272141706,0.00289012584569019

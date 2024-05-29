@@ -77,10 +77,14 @@ class FewShotTestHandler:
         total_queries = 0
         total_correct = 0
         dataset_iter = tqdm(few_shot_dataset, leave=False)
+        f = open(os.path.join(self.test_results_path, "predictions.txt"), "a")
         for category_names, support_vid_paths, query_vid_paths, query_vid_labels, val_tuning_vid_paths, val_tuning_vid_labels in dataset_iter:
             query_predictions = classifier.predict(category_names, support_vid_paths, query_vid_paths, query_vid_labels,
                                                    val_tuning_vid_paths, val_tuning_vid_labels)
-
+            f.write(str(query_predictions))
+            f.write("\n")
+            f.write(str(query_vid_labels))
+            f.write("\n==================\n")
             # Compute accuracy for this sampled task
             correct_predictions = 0
             for i in range(query_predictions.shape[0]):

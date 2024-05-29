@@ -131,6 +131,12 @@ class FiTVLM(SimilarityVLM):
         state_dict = self.model._inflate_positional_embeds(state_dict)
         self.model.load_state_dict(state_dict, strict=True)
         self.model.to(DEVICE)
+        for name, param in self.model.named_parameters():
+            if "vid_proj" not in name:
+                param.requires_grad = False
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                print(name)
         return
 
     def tokenize(self, text):
@@ -228,10 +234,7 @@ class FiTVLM(SimilarityVLM):
 
         video_features = []
         for sample in torch.unbind(video_samples):
-            with torch.no_grad():
-                video_feature = self.model.video_model.forward_features(sample)
-            video_feature = self.model.video_model.head(video_feature)
-            video_feature = self.model.vid_proj(video_feature)
+            video_feature = self.model.compute_video(sample)
             video_features.append(video_feature)
         
         video_features = torch.mean(torch.stack(video_features), dim=0)

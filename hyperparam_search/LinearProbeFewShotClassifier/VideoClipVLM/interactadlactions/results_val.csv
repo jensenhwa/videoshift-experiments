@@ -1,0 +1,4 @@
+vlm_class,vlm.num_seconds,vlm.path,vlm.sample_strat,vlm.use_cuda,classifier_class,classifier.regularization,classifier.top_k,query_dataset,support_dataset,n_way,n_support,n_query,n_episodes,val_tuning_dataset,accuracy,accuracy_std
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,1,interactadlactions.c.val,interactadlactions.c.val,13,0,,4,,0.01658276576843352,0.0038607356709839495
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,5,interactadlactions.c.val,interactadlactions.c.val,13,0,,4,,0.6867041753035238,0.01874028013951677
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,10,interactadlactions.c.val,interactadlactions.c.val,13,0,,4,,0.9090909090909091,0.013546657491109787

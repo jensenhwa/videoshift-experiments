@@ -58,9 +58,9 @@ class LinearProbeFewShotClassifier(FewShotClassifier):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 query_embeds = [torch.tensor(self.vlm.get_video_embeds(vid)).cpu() for vid in query_video_paths]
-                query_embeds = torch.stack(query_embeds)
+                query_embeds = torch.stack(query_embeds).view((len(query_embeds), -1))
                 text_embeds = [torch.tensor(self.vlm.get_text_embeds(name), device=query_embeds.device) for name in category_names]
-                text_embeds = torch.stack(text_embeds)
+                text_embeds = torch.stack(text_embeds).view((len(text_embeds), -1))
             query_to_text_similarities = self.vlm.default_similarity_metric()(query_embeds, text_embeds).cpu()
             query_predictions = np.argpartition(query_to_text_similarities, -1*self.top_k, axis=1)[:,-1*self.top_k:]
             return query_predictions

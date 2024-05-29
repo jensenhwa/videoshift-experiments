@@ -96,7 +96,7 @@ class SequentialCategoryNameDataset(torch.utils.data.Dataset):
 
 class DatasetHandler:
     def __init__(self, name: Union[str, Iterable], split: str = "val", split_type: str = "video", class_limit: Optional[int] = None,
-                 min_train_videos: int = DEFAULT_MIN_TRAIN_VIDS):
+            min_train_videos: int = DEFAULT_MIN_TRAIN_VIDS, label_verb: bool = False):
         self.name = name
         self.split = split
         self.split_type = split_type
@@ -129,7 +129,15 @@ class DatasetHandler:
                     else:
                         self.data_dict[key] = data[key]
 
-        
+        if label_verb:
+            verb_dict = {}
+            for key, value in self.data_dict.items():
+                if key.split()[0] in verb_dict:
+                    verb_dict[key.split()[0]].extend(value)
+                else:
+                    verb_dict[key.split()[0]] = value
+            self.data_dict = verb_dict
+
         # Artificially limit the number of classes after the fact
         if self.class_limit is not None and self.class_limit < len(self.data_dict):
             for extra_class in list(self.data_dict.keys())[self.class_limit:]:

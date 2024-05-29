@@ -1,0 +1,14 @@
+vlm_class,vlm.num_seconds,vlm.path,vlm.sample_strat,vlm.use_cuda,classifier_class,classifier.regularization,classifier.top_k,query_dataset,support_dataset,n_way,n_support,n_query,n_episodes,val_tuning_dataset,accuracy,accuracy_std
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,1,homageactions.c.val,homageactions.c.val,13,0,,4,,0.0151849562991083,0.0348423934657729
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,5,homageactions.c.val,homageactions.c.val,13,0,,4,,0.0623289485300609,0.0664707050782875
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,10,homageactions.c.val,homageactions.c.val,13,0,,4,,0.5546481857508607,0.1889563438579977
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,1,homageactions.c.val,homageactions.c.val,448,0,,4,,0.001937984496124031,0.0
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,5,homageactions.c.val,homageactions.c.val,448,0,,4,,0.009883720930232558,0.0
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,10,homageactions.c.val,homageactions.c.val,448,0,,4,,0.012338501291989663,0.0
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,20,homageactions.c.val,homageactions.c.val,448,0,,4,,0.02719638242894057,0.0
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,50,homageactions.c.val,homageactions.c.val,448,0,,4,,0.12751937984496123,0.0
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,1,interactadlactions.c.val,interactadlactions.c.val,66,0,,4,,0.007007007007007007,0.0
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,5,interactadlactions.c.val,interactadlactions.c.val,66,0,,4,,0.2002002002002002,0.0
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,10,interactadlactions.c.val,interactadlactions.c.val,66,0,,4,,0.23023023023023023,0.0
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,20,interactadlactions.c.val,interactadlactions.c.val,66,0,,4,,0.3173173173173173,0.0
+VideoClipVLM,4,model/videoclip/MMPT_updated/projects/retri/videoclip/how2.yaml,spread,True,LinearProbeFewShotClassifier,0.01,50,interactadlactions.c.val,interactadlactions.c.val,66,0,,4,,0.7377377377377378,0.0

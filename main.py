@@ -49,6 +49,7 @@ argparser.add_argument("--learning_rate", type=float, default=1e-3)
 argparser.add_argument("--epochs", type=int, default=5)
 argparser.add_argument("--batch_size", type=int, default=32)
 argparser.add_argument("--top_k", type=int, default=[1,5,10,20,50])
+argparser.add_argument("--label_verb", action="store_true", help="If true, only verb part of label is used")
 args, unknown_args_list = argparser.parse_known_args()
 
 # Attempt to parse unknown args as vlm/classifier parameter overrides, like "--classifier.epochs 5 10 20"
@@ -77,6 +78,7 @@ test_params_dict = {}
 
 # Dataset Params - dataset.____ keys are passed into DatasetHandler constructor
 test_params_dict["dataset.name"] = args.dataset
+test_params_dict["dataset.label_verb"] = [args.label_verb]
 
 # Few-Shot Test Params - test.____ keys are passed into few-shot test call
 test_params_dict["test.n_way"] = args.n_way  # None value gets manually converted to the max size for each dataset
@@ -163,11 +165,6 @@ elif args.classifier == "gaussian_proto":
     ))
 elif args.classifier == "linear":
     from classifier import LinearProbeFewShotClassifier as Classifier
-
-    classifier_hyperparams.append(skopt.space.Real(
-        1e-2, 1e1,
-        name="regularization", prior="log-uniform"
-    ))
 elif args.classifier == "subvideo":
     from classifier import SubVideoAverageFewShotClassifier as Classifier
 elif args.classifier == "tip_adapter":
@@ -440,6 +437,7 @@ for test_params in pbar:
         hyperparam_kwargs = dict(hyperparam_kwargs)
         vlm_kwargs = {key[4:]: val for key, val in hyperparam_kwargs.items() if key.startswith("vlm.")}
         classifier_kwargs = {key[11:]: val for key, val in hyperparam_kwargs.items() if key.startswith("classifier.")}
+        classifier_kwargs['regularization'] = 0.01 #Temporary to avoid searching over regularization when n_support=0
 
         # Update vlm if necessary (allow reuse if unchanging)
         global vlm, cur_vlm_kwargs
@@ -715,6 +713,7 @@ for test_params in pbar:
                     classifier_kwargs[col[11:]] = Similarity[val]
                 else:
                     classifier_kwargs[col[11:]] = val
+    classifier_kwargs["regularization"] = 0.01 #Temporary to avoid iterating over this in 0-shot
 
     # Update vlm if necessary (allow reuse if unchanging)
     if vlm is None or cur_vlm_kwargs != vlm_kwargs:
