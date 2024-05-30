@@ -77,7 +77,7 @@ class FewShotTestHandler:
         total_queries = 0
         total_correct = 0
         dataset_iter = tqdm(few_shot_dataset, leave=False)
-        f = open(os.path.join(self.test_results_path, "predictions.txt"), "a")
+        f = open(os.path.join(os.path.dirname(self.test_results_path), "predictions.txt"), "a")
         for category_names, support_vid_paths, query_vid_paths, query_vid_labels, val_tuning_vid_paths, val_tuning_vid_labels in dataset_iter:
             query_predictions = classifier.predict(category_names, support_vid_paths, query_vid_paths, query_vid_labels,
                                                    val_tuning_vid_paths, val_tuning_vid_labels)
@@ -98,6 +98,8 @@ class FewShotTestHandler:
             total_queries += len(query_vid_paths)
             total_correct += correct_predictions
             dataset_iter.set_postfix({"accuracy": total_correct / total_queries})
+        f.write("----------------------------\n")
+        f.close()
 
         # TODO: Look into other error/confidence-bound measures we should save
         # - Uncertainty in performance given a particular set of support videos (decreases with number of queries)

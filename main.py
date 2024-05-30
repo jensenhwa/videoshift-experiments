@@ -98,10 +98,12 @@ if args.vlm == "videoclip":
     fixed_vlm_kwargs["num_seconds"] = 4
     fixed_vlm_kwargs["sample_strat"] = "spread"
     fixed_vlm_kwargs["use_cuda"] = True
+    fixed_vlm_kwargs["reset_cache"] = True
 elif args.vlm == "fit":
     from model.frozenintime.fit import FiTVLM as VLM
 
     fixed_vlm_kwargs["use_cuda"] = True
+    fixed_vlm_kwargs["reset_cache"] = True
 else:
     raise NotImplementedError
 
